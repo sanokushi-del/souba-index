@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LEGO 廃盤セット相場指数</title><meta name="description" content="LEGO の人気セット（廃盤を含む）の店頭価格を、未開封かどうかを補正して毎月指数にしています。"><style>
+:root{
+  color-scheme: light;
+  --surface-0:#f4f3ef; --surface-1:#fcfcfb; --border:#e3e1da; --grid:#ecebe6;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#7a7974;
+  --series-1:#2a78d6; --series-2:#eb6834; --accent-wash:#e8f0fb; --banner:#fff4d6; --banner-ink:#5a4300;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --surface-0:#121211; --surface-1:#1a1a19; --border:#33332f; --grid:#2a2a27;
+    --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#8f8e86;
+    --series-1:#3987e5; --series-2:#d95926; --accent-wash:#1d2a3b; --banner:#3a3016; --banner-ink:#f3dd9a;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --surface-0:#121211; --surface-1:#1a1a19; --border:#33332f; --grid:#2a2a27;
+  --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#8f8e86;
+  --series-1:#3987e5; --series-2:#d95926; --accent-wash:#1d2a3b; --banner:#3a3016; --banner-ink:#f3dd9a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface-0);color:var(--text-primary);
+  font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;line-height:1.6;font-size:15px}
+a{color:var(--series-1)}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 64px}
+header h1{font-size:26px;margin:0 0 4px;letter-spacing:.02em}
+header p{margin:0;color:var(--text-secondary)}
+nav{margin-top:10px;font-size:14px} nav a{margin-right:16px}
+.banner{background:var(--banner);color:var(--banner-ink);border-radius:8px;padding:10px 14px;margin:16px 0;font-size:14px}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:16px}
+.card h2{font-size:17px;margin:0 0 4px} .card .sub{color:var(--text-secondary);font-size:13px;margin:0 0 12px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
+.tile{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px}
+.tile .label{font-size:13px;color:var(--text-secondary)} .tile .value{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.tile .note{font-size:12px;color:var(--text-muted)}
+.prov{margin:8px 0 0;font-size:13px;color:var(--text-secondary)}
+.chart{position:relative;outline:none} .chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart:focus-visible{box-shadow:0 0 0 2px var(--series-1);border-radius:6px}
+.axis text{fill:var(--text-muted);font-size:11px} .gridline{stroke:var(--grid);stroke-width:1}
+.baseline{stroke:var(--text-muted);stroke-width:1;stroke-dasharray:3 3;opacity:.6}
+.line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.dlabel{font-size:12px;fill:var(--text-secondary)}
+.crosshair{stroke:var(--text-muted);stroke-width:1;visibility:hidden}
+.tip{position:absolute;pointer-events:none;background:var(--surface-1);border:1px solid var(--border);border-radius:8px;
+  padding:8px 10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.12);visibility:hidden;min-width:150px;z-index:2}
+.tip .h{color:var(--text-secondary);margin-bottom:4px} .tip .row{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tip .key{width:14px;height:2px;border-radius:1px;display:inline-block} .tip strong{font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-secondary);margin-bottom:6px}
+.legend span{display:inline-flex;align-items:center;gap:6px} .legend i{width:16px;height:2px;border-radius:1px;display:inline-block}
+.multiples{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.multiples h3{font-size:14px;margin:0;font-weight:600} .multiples .m{color:var(--text-secondary);font-size:12px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.filters button{font:inherit;font-size:13px;border:1px solid var(--border);background:var(--surface-1);color:var(--text-primary);
+  padding:4px 12px;border-radius:999px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--accent-wash);border-color:var(--series-1);font-weight:600}
+.filters input{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--border);border-radius:8px;
+  background:var(--surface-1);color:var(--text-primary);min-width:200px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+th{color:var(--text-secondary);font-weight:600;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--surface-1)}
+th[aria-sort="ascending"]::after{content:" ▲"} th[aria-sort="descending"]::after{content:" ▼"}
+td.num{text-align:right;font-variant-numeric:tabular-nums} td.muted{color:var(--text-muted)}
+details summary{cursor:pointer;color:var(--text-secondary);font-size:13px;margin-top:12px}
+footer{margin-top:32px;color:var(--text-muted);font-size:12px} footer a{color:var(--text-secondary)}
+.only-narrow{display:none} @media (max-width:640px){.only-wide{display:none}.only-narrow{display:block}.tile .value{font-size:24px}.card{padding:16px}}
+.prose h2{font-size:18px;margin-top:28px} .prose li{margin:4px 0} .prose code{background:var(--accent-wash);padding:1px 5px;border-radius:4px}
+</style></head>
+<body><div class="wrap">
+<header><h1>LEGO 廃盤セット相場指数 <span style="font-size:14px;color:var(--text-muted)">β</span></h1>
+<p>LEGO の人気セット（廃盤を含む）の店頭価格を、未開封かどうかを補正して毎月指数にしています。</p>
+<nav><a href="../index.html">ほかのジャンル</a><a href="index.html">指数</a><a href="methodology.html">算出方法</a><a href="data/index_monthly.csv">CSV（指数）</a><a href="data/index_daily.csv">CSV（日足）</a><a href="data/lens_monthly.csv">CSV（セット別）</a></nav>
+</header>
+
+
+<div class="tiles">
+ <div class="tile"><div class="label">総合指数（2026年10月・速報）</div><div class="value">100.0</div>
+   <div class="note">2026年10月＝100</div></div>
+ <div class="tile"><div class="label">前月比（速報）</div><div class="value">—</div>
+   <div class="note">算出対象 5 本</div></div>
+ <div class="tile"><div class="label">期初来</div><div class="value">±0.0%</div>
+   <div class="note">1か月</div></div>
+ <div class="tile"><div class="label">成約推定の件数</div><div class="value">29</div>
+   <div class="note">状態1点あたり価格 +0.5%</div></div>
+</div><p class="prov">2026年10月（速報・11/21ごろ確定）の値は速報です。「売れた」にした出品が、在庫切れのあとの入荷などで検索に戻ってくると取り消すので、月末から21日は値が変わります。</p>
+<section class="card"><h2>総合指数</h2>
+<p class="sub">2026年10月＝100。2本の線が近いほど、指数が状態の違いや品目の入れ替わりに左右されていないことを示します。</p>
+<div class="legend"><span><i style="background:var(--series-1)"></i>総合指数（状態調整・連鎖）</span><span><i style="background:var(--series-2)"></i>ヘドニック指数（検証用）</span></div><div class="only-wide"><div class="chart" tabindex="0" data-chart="{&quot;w&quot;: 720, &quot;x&quot;: [&quot;2026-10&quot;], &quot;xlabels&quot;: [&quot;2026年10月&quot;], &quot;px&quot;: [322.0], &quot;unit&quot;: &quot;index&quot;, &quot;dec&quot;: 0, &quot;series&quot;: [{&quot;name&quot;: &quot;総合（連鎖）&quot;, &quot;values&quot;: [100.0], &quot;color&quot;: &quot;--series-1&quot;}, {&quot;name&quot;: &quot;ヘドニック（検証用）&quot;, &quot;values&quot;: [100.0], &quot;color&quot;: &quot;--series-2&quot;}]}"><svg viewBox="0 0 720 280" role="img" aria-label="総合指数の推移"><g class="axis"><line class="gridline" x1="44" x2="600" y1="239.1" y2="239.1"/><text x="38" y="243.1" text-anchor="end">99</text><line class="gridline" x1="44" x2="600" y1="132.0" y2="132.0"/><text x="38" y="136.0" text-anchor="end">100</text><line class="gridline" x1="44" x2="600" y1="24.9" y2="24.9"/><text x="38" y="28.9" text-anchor="end">101</text><text x="322.0" y="272" text-anchor="middle">26/10</text></g><line class="baseline" x1="44" x2="600" y1="132.0" y2="132.0"/><path class="line" d="M322.0,132.0" style="stroke:var(--series-1)"/><circle cx="322.0" cy="132.0" r="4" style="fill:var(--series-1);stroke:var(--surface-1);stroke-width:2"/><path class="line" d="M322.0,132.0" style="stroke:var(--series-2)"/><circle cx="322.0" cy="132.0" r="4" style="fill:var(--series-2);stroke:var(--surface-1);stroke-width:2"/><text class="dlabel" x="332.0" y="136.0">ヘドニック 100</text><text class="dlabel" x="332.0" y="152.0">総合 100</text><line class="crosshair" x1="0" x2="0" y1="12" y2="252"/></svg><div class="tip" role="status"></div></div></div><div class="only-narrow"><div class="chart" tabindex="0" data-chart="{&quot;w&quot;: 380, &quot;x&quot;: [&quot;2026-10&quot;], &quot;xlabels&quot;: [&quot;2026年10月&quot;], &quot;px&quot;: [152.0], &quot;unit&quot;: &quot;index&quot;, &quot;dec&quot;: 0, &quot;series&quot;: [{&quot;name&quot;: &quot;総合（連鎖）&quot;, &quot;values&quot;: [100.0], &quot;color&quot;: &quot;--series-1&quot;}, {&quot;name&quot;: &quot;ヘドニック（検証用）&quot;, &quot;values&quot;: [100.0], &quot;color&quot;: &quot;--series-2&quot;}]}"><svg viewBox="0 0 380 300" role="img" aria-label="総合指数の推移"><g class="axis"><line class="gridline" x1="44" x2="260" y1="258.1" y2="258.1"/><text x="38" y="262.1" text-anchor="end">99</text><line class="gridline" x1="44" x2="260" y1="142.0" y2="142.0"/><text x="38" y="146.0" text-anchor="end">100</text><line class="gridline" x1="44" x2="260" y1="25.9" y2="25.9"/><text x="38" y="29.9" text-anchor="end">101</text><text x="152.0" y="292" text-anchor="middle">26/10</text></g><line class="baseline" x1="44" x2="260" y1="142.0" y2="142.0"/><path class="line" d="M152.0,142.0" style="stroke:var(--series-1)"/><circle cx="152.0" cy="142.0" r="4" style="fill:var(--series-1);stroke:var(--surface-1);stroke-width:2"/><path class="line" d="M152.0,142.0" style="stroke:var(--series-2)"/><circle cx="152.0" cy="142.0" r="4" style="fill:var(--series-2);stroke:var(--surface-1);stroke-width:2"/><text class="dlabel" x="162.0" y="146.0">ヘドニック 100</text><text class="dlabel" x="162.0" y="162.0">総合 100</text><line class="crosshair" x1="0" x2="0" y1="12" y2="272"/></svg><div class="tip" role="status"></div></div></div>
+<details><summary>数値の表を表示</summary><div class="tablewrap"><table><thead><tr><th>月</th><th>総合（連鎖）</th><th>ヘドニック</th><th>算出対象（本）</th></tr></thead>
+<tbody><tr><td>2026年10月（速報・11/21ごろ確定）</td><td class='num'>100.0</td><td class='num'>100.0</td><td class='num'>5</td></tr></tbody></table></div></details></section>
+<section class="card"><h2>直近30日の指数（毎日更新）</h2>
+<p class="sub">その日までの30日間に売れた出品で月次と同じ計算をして、30日前の値と比べてつなぎます（11/8までの30日間＝100。そこから30日たつまでは、この基準の期間と比べます）。1日ごとの売れた件数は少ないので、1日ごとの値ではなく30日の移動する窓で出します。売れたの判定に3日かかるので、最新は11/10です。月次の指数とは別の系列です。件数の少ない品目は1件の出入りで動くので、日ごとの細かな上下は相場の動きとは限りません。いまの値はすべて速報です。「売れた」にした出品が検索に戻ってくると取り消すので、21日ほどは後から変わります。</p>
+<p class="prov" style="margin:0 0 8px">11/10までの30日間（速報）: <strong>106.77</strong>（11/8比 ▲6.77%・算出対象 8 セット）</p>
+<div class="only-wide"><div class="chart" tabindex="0" data-chart="{&quot;w&quot;: 720, &quot;x&quot;: [&quot;2026-11-08&quot;, &quot;2026-11-09&quot;, &quot;2026-11-10&quot;], &quot;xlabels&quot;: [&quot;2026年11月8日&quot;, &quot;2026年11月9日&quot;, &quot;2026年11月10日&quot;], &quot;px&quot;: [44.0, 322.0, 600.0], &quot;unit&quot;: &quot;index&quot;, &quot;dec&quot;: 0, &quot;series&quot;: [{&quot;name&quot;: &quot;直近30日&quot;, &quot;values&quot;: [100.0, 100.32, 106.77], &quot;color&quot;: &quot;--series-1&quot;}]}"><svg viewBox="0 0 720 280" role="img" aria-label="直近30日の指数（毎日更新）"><g class="axis"><line class="gridline" x1="44" x2="600" y1="239.1" y2="239.1"/><text x="38" y="243.1" text-anchor="end">100</text><line class="gridline" x1="44" x2="600" y1="175.8" y2="175.8"/><text x="38" y="179.8" text-anchor="end">102</text><line class="gridline" x1="44" x2="600" y1="112.5" y2="112.5"/><text x="38" y="116.5" text-anchor="end">104</text><line class="gridline" x1="44" x2="600" y1="49.2" y2="49.2"/><text x="38" y="53.2" text-anchor="end">106</text><text x="44.0" y="272" text-anchor="middle">11/8</text><text x="322.0" y="272" text-anchor="middle">11/9</text><text x="600.0" y="272" text-anchor="middle">11/10</text></g><line class="baseline" x1="44" x2="600" y1="239.1" y2="239.1"/><path class="line" d="M44.0,239.1 L322.0,229.1 L600.0,24.9" style="stroke:var(--series-1)"/><circle cx="600.0" cy="24.9" r="4" style="fill:var(--series-1);stroke:var(--surface-1);stroke-width:2"/><text class="dlabel" x="610.0" y="28.9">直近30日 107</text><line class="crosshair" x1="0" x2="0" y1="12" y2="252"/></svg><div class="tip" role="status"></div></div></div><div class="only-narrow"><div class="chart" tabindex="0" data-chart="{&quot;w&quot;: 380, &quot;x&quot;: [&quot;2026-11-08&quot;, &quot;2026-11-09&quot;, &quot;2026-11-10&quot;], &quot;xlabels&quot;: [&quot;2026年11月8日&quot;, &quot;2026年11月9日&quot;, &quot;2026年11月10日&quot;], &quot;px&quot;: [44.0, 152.0, 260.0], &quot;unit&quot;: &quot;index&quot;, &quot;dec&quot;: 0, &quot;series&quot;: [{&quot;name&quot;: &quot;直近30日&quot;, &quot;values&quot;: [100.0, 100.32, 106.77], &quot;color&quot;: &quot;--series-1&quot;}]}"><svg viewBox="0 0 380 300" role="img" aria-label="直近30日の指数（毎日更新）"><g class="axis"><line class="gridline" x1="44" x2="260" y1="258.1" y2="258.1"/><text x="38" y="262.1" text-anchor="end">100</text><line class="gridline" x1="44" x2="260" y1="189.5" y2="189.5"/><text x="38" y="193.5" text-anchor="end">102</text><line class="gridline" x1="44" x2="260" y1="120.9" y2="120.9"/><text x="38" y="124.9" text-anchor="end">104</text><line class="gridline" x1="44" x2="260" y1="52.3" y2="52.3"/><text x="38" y="56.3" text-anchor="end">106</text><text x="44.0" y="292" text-anchor="middle">11/8</text><text x="152.0" y="292" text-anchor="middle">11/9</text><text x="260.0" y="292" text-anchor="middle">11/10</text></g><line class="baseline" x1="44" x2="260" y1="258.1" y2="258.1"/><path class="line" d="M44.0,258.1 L152.0,247.2 L260.0,25.9" style="stroke:var(--series-1)"/><circle cx="260.0" cy="25.9" r="4" style="fill:var(--series-1);stroke:var(--surface-1);stroke-width:2"/><text class="dlabel" x="270.0" y="29.9">直近30日 107</text><line class="crosshair" x1="0" x2="0" y1="12" y2="272"/></svg><div class="tip" role="status"></div></div></div>
+<details><summary>数値の表を表示</summary><div class="tablewrap"><table><thead><tr><th>日</th><th>指数</th><th>算出対象</th></tr></thead>
+<tbody><tr><td>2026年11月10日（速報）</td><td class='num'>106.77</td><td class='num'>8</td></tr><tr><td>2026年11月9日（速報）</td><td class='num'>100.32</td><td class='num'>8</td></tr><tr><td>2026年11月8日（速報）</td><td class='num'>100.00</td><td class='num'>9</td></tr></tbody></table></div></details></section><section class="card"><h2>グループ別の指数</h2>
+<p class="sub">比べやすいように縦軸をそろえています。</p><div class="multiples"><div><h3>アイコン</h3><div class="m"></div><p class="sub">データ不足</p></div><div><h3>アイデア</h3><div class="m">100.0（期初来 ±0.0%）</div><div class="chart" tabindex="0" data-chart="{&quot;w&quot;: 360, &quot;x&quot;: [&quot;2026-10&quot;], &quot;xlabels&quot;: [&quot;2026年10月&quot;], &quot;px&quot;: [196.0], &quot;unit&quot;: &quot;index&quot;, &quot;dec&quot;: 1, &quot;series&quot;: [{&quot;name&quot;: &quot;アイデア&quot;, &quot;values&quot;: [100.0], &quot;color&quot;: &quot;--series-1&quot;}]}"><svg viewBox="0 0 360 170" role="img" aria-label="アイデアの指数"><g class="axis"><line class="gridline" x1="44" x2="348" y1="142.0" y2="142.0"/><text x="38" y="146.0" text-anchor="end">99</text><line class="gridline" x1="44" x2="348" y1="109.5" y2="109.5"/><text x="38" y="113.5" text-anchor="end">99.5</text><line class="gridline" x1="44" x2="348" y1="77.0" y2="77.0"/><text x="38" y="81.0" text-anchor="end">100</text><line class="gridline" x1="44" x2="348" y1="44.5" y2="44.5"/><text x="38" y="48.5" text-anchor="end">100.5</text><line class="gridline" x1="44" x2="348" y1="12.0" y2="12.0"/><text x="38" y="16.0" text-anchor="end">101</text><text x="196.0" y="162" text-anchor="middle">26/10</text></g><line class="baseline" x1="44" x2="348" y1="77.0" y2="77.0"/><path class="line" d="M196.0,77.0" style="stroke:var(--series-1)"/><circle cx="196.0" cy="77.0" r="4" style="fill:var(--series-1);stroke:var(--surface-1);stroke-width:2"/><line class="crosshair" x1="0" x2="0" y1="12" y2="142"/></svg><div class="tip" role="status"></div></div></div><div><h3>スター・ウォーズ</h3><div class="m"></div><p class="sub">データ不足</p></div><div><h3>テクニック</h3><div class="m">100.0（期初来 ±0.0%）</div><div class="chart" tabindex="0" data-chart="{&quot;w&quot;: 360, &quot;x&quot;: [&quot;2026-10&quot;], &quot;xlabels&quot;: [&quot;2026年10月&quot;], &quot;px&quot;: [196.0], &quot;unit&quot;: &quot;index&quot;, &quot;dec&quot;: 1, &quot;series&quot;: [{&quot;name&quot;: &quot;テクニック&quot;, &quot;values&quot;: [100.0], &quot;color&quot;: &quot;--series-1&quot;}]}"><svg viewBox="0 0 360 170" role="img" aria-label="テクニックの指数"><g class="axis"><line class="gridline" x1="44" x2="348" y1="142.0" y2="142.0"/><text x="38" y="146.0" text-anchor="end">99</text><line class="gridline" x1="44" x2="348" y1="109.5" y2="109.5"/><text x="38" y="113.5" text-anchor="end">99.5</text><line class="gridline" x1="44" x2="348" y1="77.0" y2="77.0"/><text x="38" y="81.0" text-anchor="end">100</text><line class="gridline" x1="44" x2="348" y1="44.5" y2="44.5"/><text x="38" y="48.5" text-anchor="end">100.5</text><line class="gridline" x1="44" x2="348" y1="12.0" y2="12.0"/><text x="38" y="16.0" text-anchor="end">101</text><text x="196.0" y="162" text-anchor="middle">26/10</text></g><line class="baseline" x1="44" x2="348" y1="77.0" y2="77.0"/><path class="line" d="M196.0,77.0" style="stroke:var(--series-1)"/><circle cx="196.0" cy="77.0" r="4" style="fill:var(--series-1);stroke:var(--surface-1);stroke-width:2"/><line class="crosshair" x1="0" x2="0" y1="12" y2="142"/></svg><div class="tip" role="status"></div></div></div><div><h3>ディズニー・ハリポタ</h3><div class="m">100.0（期初来 ±0.0%）</div><div class="chart" tabindex="0" data-chart="{&quot;w&quot;: 360, &quot;x&quot;: [&quot;2026-10&quot;], &quot;xlabels&quot;: [&quot;2026年10月&quot;], &quot;px&quot;: [196.0], &quot;unit&quot;: &quot;index&quot;, &quot;dec&quot;: 1, &quot;series&quot;: [{&quot;name&quot;: &quot;ディズニー・ハリポタ&quot;, &quot;values&quot;: [100.0], &quot;color&quot;: &quot;--series-1&quot;}]}"><svg viewBox="0 0 360 170" role="img" aria-label="ディズニー・ハリポタの指数"><g class="axis"><line class="gridline" x1="44" x2="348" y1="142.0" y2="142.0"/><text x="38" y="146.0" text-anchor="end">99</text><line class="gridline" x1="44" x2="348" y1="109.5" y2="109.5"/><text x="38" y="113.5" text-anchor="end">99.5</text><line class="gridline" x1="44" x2="348" y1="77.0" y2="77.0"/><text x="38" y="81.0" text-anchor="end">100</text><line class="gridline" x1="44" x2="348" y1="44.5" y2="44.5"/><text x="38" y="48.5" text-anchor="end">100.5</text><line class="gridline" x1="44" x2="348" y1="12.0" y2="12.0"/><text x="38" y="16.0" text-anchor="end">101</text><text x="196.0" y="162" text-anchor="middle">26/10</text></g><line class="baseline" x1="44" x2="348" y1="77.0" y2="77.0"/><path class="line" d="M196.0,77.0" style="stroke:var(--series-1)"/><circle cx="196.0" cy="77.0" r="4" style="fill:var(--series-1);stroke:var(--surface-1);stroke-width:2"/><line class="crosshair" x1="0" x2="0" y1="12" y2="142"/></svg><div class="tip" role="status"></div></div></div><div><h3>モジュラー</h3><div class="m"></div><p class="sub">データ不足</p></div></div></section><section class="card"><h2>セット別の相場</h2>
+<p class="sub">価格は状態を「新品・未開封（スコア70）」相当に補正した、2026年10月の成約推定価格の中央値です。件数が3件未満の月は「—」です。</p>
+<div class="filters"><button data-group-filter="all" aria-pressed="true">すべて</button><button data-group-filter="アイコン" aria-pressed="false">アイコン</button><button data-group-filter="アイデア" aria-pressed="false">アイデア</button><button data-group-filter="スター・ウォーズ" aria-pressed="false">スター・ウォーズ</button><button data-group-filter="テクニック" aria-pressed="false">テクニック</button><button data-group-filter="ディズニー・ハリポタ" aria-pressed="false">ディズニー・ハリポタ</button><button data-group-filter="モジュラー" aria-pressed="false">モジュラー</button><input id="lens-search" type="search" placeholder="セット名・品番で検索"></div>
+<div class="tablewrap"><table id="lens-table"><thead><tr>
+<th data-sort="str">セット</th><th data-sort="str">グループ</th><th data-sort="str">品番</th><th data-sort="num">相場（中央値）</th>
+<th data-sort="num">3か月</th><th data-sort="num">期初来</th><th data-sort="num">当月件数</th><th data-sort="num">売れるまで</th><th>推移</th><th>楽天で探す（広告）</th>
+</tr></thead><tbody><tr data-group="アイコン" data-search="ギャラクシー・エクスプローラー 10497"><td data-v="ギャラクシー・エクスプローラー">ギャラクシー・エクスプローラー</td><td data-v="アイコン" class="muted">アイコン</td><td data-v="10497" class="muted">10497</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="17.0">17日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2010497/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="アイコン" data-search="コロッセオ 10276"><td data-v="コロッセオ">コロッセオ</td><td data-v="アイコン" class="muted">アイコン</td><td data-v="10276" class="muted">10276</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="">—</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2010276/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="アイコン" data-search="タイタニック号 10294"><td data-v="タイタニック号">タイタニック号</td><td data-v="アイコン" class="muted">アイコン</td><td data-v="10294" class="muted">10294</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="">—</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2010294/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="アイコン" data-search="タージ・マハル 10256"><td data-v="タージ・マハル">タージ・マハル</td><td data-v="アイコン" class="muted">アイコン</td><td data-v="10256" class="muted">10256</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="17">17日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2010256/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="アイコン" data-search="バック・トゥ・ザ・フューチャー タイムマシン 10300"><td data-v="バック・トゥ・ザ・フューチャー タイムマシン">バック・トゥ・ザ・フューチャー タイムマシン</td><td data-v="アイコン" class="muted">アイコン</td><td data-v="10300" class="muted">10300</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="3">3日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2010300/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="アイコン" data-search="ポルシェ 911 10295"><td data-v="ポルシェ 911">ポルシェ 911</td><td data-v="アイコン" class="muted">アイコン</td><td data-v="10295" class="muted">10295</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="16.5">16日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2010295/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="アイコン" data-search="ライオン騎士の城 10305"><td data-v="ライオン騎士の城">ライオン騎士の城</td><td data-v="アイコン" class="muted">アイコン</td><td data-v="10305" class="muted">10305</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="">—</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2010305/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="アイデア" data-search="セントラル・パーク（フレンズ） 21319"><td data-v="セントラル・パーク（フレンズ）">セントラル・パーク（フレンズ）</td><td data-v="アイデア" class="muted">アイデア</td><td data-v="21319" class="muted">21319</td><td class="num" data-v="30611">¥30,611</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="4">4</td><td class="num" data-v="6.5">6日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2021319/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="アイデア" data-search="ツリーハウス 21318"><td data-v="ツリーハウス">ツリーハウス</td><td data-v="アイデア" class="muted">アイデア</td><td data-v="21318" class="muted">21318</td><td class="num" data-v="43827">¥43,827</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="4">4</td><td class="num" data-v="14.0">14日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2021318/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="アイデア" data-search="ホーム・アローン 21330"><td data-v="ホーム・アローン">ホーム・アローン</td><td data-v="アイデア" class="muted">アイデア</td><td data-v="21330" class="muted">21330</td><td class="num" data-v="68220">¥68,220</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="4">4</td><td class="num" data-v="8.0">8日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2021330/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="スター・ウォーズ" data-search="at-at（ucs） 75313"><td data-v="AT-AT（UCS）">AT-AT（UCS）</td><td data-v="スター・ウォーズ" class="muted">スター・ウォーズ</td><td data-v="75313" class="muted">75313</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="">—</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2075313/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="スター・ウォーズ" data-search="インペリアル・スター・デストロイヤー（ucs） 75252"><td data-v="インペリアル・スター・デストロイヤー（UCS）">インペリアル・スター・デストロイヤー（UCS）</td><td data-v="スター・ウォーズ" class="muted">スター・ウォーズ</td><td data-v="75252" class="muted">75252</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="">—</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2075252/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="スター・ウォーズ" data-search="ミレニアム・ファルコン（ucs 2007） 10179"><td data-v="ミレニアム・ファルコン（UCS 2007）">ミレニアム・ファルコン（UCS 2007）</td><td data-v="スター・ウォーズ" class="muted">スター・ウォーズ</td><td data-v="10179" class="muted">10179</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="">—</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2010179/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="スター・ウォーズ" data-search="ミレニアム・ファルコン（ucs 2017） 75192"><td data-v="ミレニアム・ファルコン（UCS 2017）">ミレニアム・ファルコン（UCS 2017）</td><td data-v="スター・ウォーズ" class="muted">スター・ウォーズ</td><td data-v="75192" class="muted">75192</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="9.0">9日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2075192/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="テクニック" data-search="フェラーリ デイトナ sp3 42143"><td data-v="フェラーリ デイトナ SP3">フェラーリ デイトナ SP3</td><td data-v="テクニック" class="muted">テクニック</td><td data-v="42143" class="muted">42143</td><td class="num" data-v="112351">¥112,351</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="3">3</td><td class="num" data-v="1">1日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2042143/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="テクニック" data-search="ランボルギーニ シアン fkp 37 42115"><td data-v="ランボルギーニ シアン FKP 37">ランボルギーニ シアン FKP 37</td><td data-v="テクニック" class="muted">テクニック</td><td data-v="42115" class="muted">42115</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="">—</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2042115/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="ディズニー・ハリポタ" data-search="ディズニー キャッスル 71040"><td data-v="ディズニー キャッスル">ディズニー キャッスル</td><td data-v="ディズニー・ハリポタ" class="muted">ディズニー・ハリポタ</td><td data-v="71040" class="muted">71040</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="">—</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2071040/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="ディズニー・ハリポタ" data-search="ホグワーツ城 71043"><td data-v="ホグワーツ城">ホグワーツ城</td><td data-v="ディズニー・ハリポタ" class="muted">ディズニー・ハリポタ</td><td data-v="71043" class="muted">71043</td><td class="num" data-v="109579">¥109,579</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="5">5</td><td class="num" data-v="18">18日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2071043/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="モジュラー" data-search="にぎやかな街角 10255"><td data-v="にぎやかな街角">にぎやかな街角</td><td data-v="モジュラー" class="muted">モジュラー</td><td data-v="10255" class="muted">10255</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="11">11日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2010255/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="モジュラー" data-search="本屋さん 10270"><td data-v="本屋さん">本屋さん</td><td data-v="モジュラー" class="muted">モジュラー</td><td data-v="10270" class="muted">10270</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="">—</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E3%83%AC%E3%82%B4%2010270/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr></tbody></table></div></section>
+<footer>
+<p>本サイトは価格データの統計情報を提供するもので、特定の商品の売買を勧めるものではありません。掲載終了を成約とみなした推定値を含みます。</p>
+
+<p>【広告】「楽天で探す」のリンクは楽天アフィリエイトを利用しています。リンク先で購入があると、本サイトに紹介料が支払われることがあります。</p>
+<p><a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">Supported by Rakuten Developers</a> ／ <a href="https://developer.yahoo.co.jp/sitemap/" target="_blank" rel="noopener">Webサービス by Yahoo! JAPAN</a></p>
+<p>更新: 2026-11-14</p>
+</footer></div><script>
+(function(){
+  function fmt(v,unit,dec){ if(v===null||v===undefined) return '—';
+    return unit==='yen' ? '¥'+Math.round(v).toLocaleString('ja-JP') : v.toFixed(dec||1); }
+  document.querySelectorAll('.chart[data-chart]').forEach(function(el){
+    var d = JSON.parse(el.getAttribute('data-chart'));
+    var svg = el.querySelector('svg'), cross = el.querySelector('.crosshair'), tip = el.querySelector('.tip');
+    var idx = -1;
+    function show(i){
+      if(i<0||i>=d.x.length){ hide(); return; } idx=i;
+      var px = d.px[i]; cross.setAttribute('x1',px); cross.setAttribute('x2',px); cross.style.visibility='visible';
+      tip.textContent='';
+      var h=document.createElement('div'); h.className='h'; h.textContent=d.xlabels[i]; tip.appendChild(h);
+      d.series.forEach(function(s){
+        var r=document.createElement('div'); r.className='row';
+        var k=document.createElement('span'); k.className='key'; k.style.background='var('+s.color+')';
+        var v=document.createElement('strong'); v.textContent=fmt(s.values[i],d.unit,d.dec);
+        var n=document.createElement('span'); n.textContent=s.name; n.style.color='var(--text-secondary)';
+        r.appendChild(k); r.appendChild(v); r.appendChild(n); tip.appendChild(r);
+      });
+      var box = svg.getBoundingClientRect(), scale = box.width / d.w;
+      var left = px*scale + 12; if(left + 180 > box.width) left = px*scale - 190;
+      tip.style.left = Math.max(0,left)+'px'; tip.style.top='8px'; tip.style.visibility='visible';
+    }
+    function hide(){ cross.style.visibility='hidden'; tip.style.visibility='hidden'; }
+    function nearest(clientX){
+      var box = svg.getBoundingClientRect(), x = (clientX-box.left) * d.w / box.width, best=0, bd=1e9;
+      d.px.forEach(function(p,i){ var dd=Math.abs(p-x); if(dd<bd){bd=dd;best=i;} }); return best;
+    }
+    el.addEventListener('pointermove', function(e){ show(nearest(e.clientX)); });
+    el.addEventListener('pointerleave', hide);
+    el.addEventListener('focus', function(){ show(idx<0? d.x.length-1 : idx); });
+    el.addEventListener('blur', hide);
+    el.addEventListener('keydown', function(e){
+      if(e.key==='ArrowLeft'){ show(Math.max(0,idx-1)); e.preventDefault(); }
+      if(e.key==='ArrowRight'){ show(Math.min(d.x.length-1,idx+1)); e.preventDefault(); }
+    });
+  });
+
+  // 品目の表: 並べ替え・グループ絞り込み・検索
+  var table = document.getElementById('lens-table'); if(!table) return;
+  var tbody = table.tBodies[0], group = 'all', q = '';
+  function apply(){
+    Array.prototype.forEach.call(tbody.rows, function(r){
+      var okG = group==='all' || r.dataset.group===group;
+      var okQ = !q || r.dataset.search.indexOf(q) >= 0;
+      r.hidden = !(okG && okQ);
+    });
+  }
+  document.querySelectorAll('[data-group-filter]').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('[data-group-filter]').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true'); group = b.getAttribute('data-group-filter'); apply();
+    });
+  });
+  var s = document.getElementById('lens-search');
+  if(s) s.addEventListener('input', function(){ q = s.value.trim().toLowerCase(); apply(); });
+  Array.prototype.forEach.call(table.tHead.rows[0].cells, function(th, ci){
+    if(th.dataset.sort===undefined) return;
+    th.addEventListener('click', function(){
+      var asc = th.getAttribute('aria-sort') !== 'ascending';
+      Array.prototype.forEach.call(table.tHead.rows[0].cells, function(x){ x.removeAttribute('aria-sort'); });
+      th.setAttribute('aria-sort', asc?'ascending':'descending');
+      var rows = Array.prototype.slice.call(tbody.rows), num = th.dataset.sort==='num';
+      rows.sort(function(a,b){
+        var x=a.cells[ci].dataset.v, y=b.cells[ci].dataset.v;
+        if(num){ x = x===''? -Infinity : +x; y = y===''? -Infinity : +y; return asc? x-y : y-x; }
+        return asc? String(x).localeCompare(y,'ja') : String(y).localeCompare(x,'ja');
+      });
+      rows.forEach(function(r){ tbody.appendChild(r); });
+    });
+  });
+})();
+</script></body></html>

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>算出方法｜フィルムカメラ相場指数</title><meta name="description" content="フィルムカメラ・高級コンパクトの主要機種の中古価格を、状態の違いを補正して毎月指数にしています。"><style>
+:root{
+  color-scheme: light;
+  --surface-0:#f4f3ef; --surface-1:#fcfcfb; --border:#e3e1da; --grid:#ecebe6;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#7a7974;
+  --series-1:#2a78d6; --series-2:#eb6834; --accent-wash:#e8f0fb; --banner:#fff4d6; --banner-ink:#5a4300;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --surface-0:#121211; --surface-1:#1a1a19; --border:#33332f; --grid:#2a2a27;
+    --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#8f8e86;
+    --series-1:#3987e5; --series-2:#d95926; --accent-wash:#1d2a3b; --banner:#3a3016; --banner-ink:#f3dd9a;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --surface-0:#121211; --surface-1:#1a1a19; --border:#33332f; --grid:#2a2a27;
+  --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#8f8e86;
+  --series-1:#3987e5; --series-2:#d95926; --accent-wash:#1d2a3b; --banner:#3a3016; --banner-ink:#f3dd9a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface-0);color:var(--text-primary);
+  font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;line-height:1.6;font-size:15px}
+a{color:var(--series-1)}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 64px}
+header h1{font-size:26px;margin:0 0 4px;letter-spacing:.02em}
+header p{margin:0;color:var(--text-secondary)}
+nav{margin-top:10px;font-size:14px} nav a{margin-right:16px}
+.banner{background:var(--banner);color:var(--banner-ink);border-radius:8px;padding:10px 14px;margin:16px 0;font-size:14px}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:16px}
+.card h2{font-size:17px;margin:0 0 4px} .card .sub{color:var(--text-secondary);font-size:13px;margin:0 0 12px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
+.tile{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px}
+.tile .label{font-size:13px;color:var(--text-secondary)} .tile .value{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.tile .note{font-size:12px;color:var(--text-muted)}
+.prov{margin:8px 0 0;font-size:13px;color:var(--text-secondary)}
+.chart{position:relative;outline:none} .chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart:focus-visible{box-shadow:0 0 0 2px var(--series-1);border-radius:6px}
+.axis text{fill:var(--text-muted);font-size:11px} .gridline{stroke:var(--grid);stroke-width:1}
+.baseline{stroke:var(--text-muted);stroke-width:1;stroke-dasharray:3 3;opacity:.6}
+.line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.dlabel{font-size:12px;fill:var(--text-secondary)}
+.crosshair{stroke:var(--text-muted);stroke-width:1;visibility:hidden}
+.tip{position:absolute;pointer-events:none;background:var(--surface-1);border:1px solid var(--border);border-radius:8px;
+  padding:8px 10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.12);visibility:hidden;min-width:150px;z-index:2}
+.tip .h{color:var(--text-secondary);margin-bottom:4px} .tip .row{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tip .key{width:14px;height:2px;border-radius:1px;display:inline-block} .tip strong{font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-secondary);margin-bottom:6px}
+.legend span{display:inline-flex;align-items:center;gap:6px} .legend i{width:16px;height:2px;border-radius:1px;display:inline-block}
+.multiples{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.multiples h3{font-size:14px;margin:0;font-weight:600} .multiples .m{color:var(--text-secondary);font-size:12px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.filters button{font:inherit;font-size:13px;border:1px solid var(--border);background:var(--surface-1);color:var(--text-primary);
+  padding:4px 12px;border-radius:999px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--accent-wash);border-color:var(--series-1);font-weight:600}
+.filters input{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--border);border-radius:8px;
+  background:var(--surface-1);color:var(--text-primary);min-width:200px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+th{color:var(--text-secondary);font-weight:600;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--surface-1)}
+th[aria-sort="ascending"]::after{content:" ▲"} th[aria-sort="descending"]::after{content:" ▼"}
+td.num{text-align:right;font-variant-numeric:tabular-nums} td.muted{color:var(--text-muted)}
+details summary{cursor:pointer;color:var(--text-secondary);font-size:13px;margin-top:12px}
+footer{margin-top:32px;color:var(--text-muted);font-size:12px} footer a{color:var(--text-secondary)}
+.only-narrow{display:none} @media (max-width:640px){.only-wide{display:none}.only-narrow{display:block}.tile .value{font-size:24px}.card{padding:16px}}
+.prose h2{font-size:18px;margin-top:28px} .prose li{margin:4px 0} .prose code{background:var(--accent-wash);padding:1px 5px;border-radius:4px}
+</style></head>
+<body><div class="wrap">
+<header><h1>フィルムカメラ相場指数 <span style="font-size:14px;color:var(--text-muted)">β</span></h1>
+<p>フィルムカメラ・高級コンパクトの主要機種の中古価格を、状態の違いを補正して毎月指数にしています。</p>
+<nav><a href="../index.html">ほかのジャンル</a><a href="index.html">指数</a><a href="methodology.html">算出方法</a><a href="data/index_monthly.csv">CSV（指数）</a><a href="data/index_daily.csv">CSV（日足）</a><a href="data/lens_monthly.csv">CSV（機種別）</a></nav>
+</header>
+
+<section class="card prose">
+<h2 style="margin-top:0">算出方法</h2>
+<ol>
+<li><strong>収集</strong>: 楽天市場・Yahoo!ショッピングの公式APIで、中古の出品を毎日取得します（スクレイピングはしません）。</li>
+<li><strong>名寄せ</strong>: 出品タイトルを正規化し、機種辞書と照合します。メーカー・機種名が一致し、派生機種・限定色・レンズとのセットを表す語を含まないものだけを採用します。</li>
+<li><strong>除外</strong>: ジャンク・シャッター不良など、レンズとのセットやまとめ売り、付属品のみ、改造品、限定品、ブラックペイントなど値段の大きく違う型は指数に入れません。</li>
+<li><strong>店の範囲</strong>: 楽天市場・Yahoo!ショッピングとも、中古カメラ専門店の出品だけを使います。</li>
+<li><strong>成約の推定</strong>: 3日以上APIに出てこなくなった出品を「掲載終了」とし、終了直前の価格を成約推定価格として、終了した月に計上します。検索結果の上位に出てこなくなっただけの出品を数えないよう、楽天は商品ごとに在庫を確かめ直し、確かめられない出品は使いません。店の出品がまとめて消えたとき（休業・撤退・商品番号の付け直し）は売れたとみなしません。同じ在庫を系列の複数の店や楽天・Yahoo!の両方に出している場合は、1件として数えます（同じ会社の店なら、楽天とYahoo!で値段が3%以内で違っても同じ在庫とみなします）。</li>
+<li><strong>外れ値</strong>: 機種×月ごとに、log価格の中央値から3MADを超えて離れたものを除きます。</li>
+<li><strong>状態補正</strong>: 出品文の「美品」「AB」「カビあり」などから状態スコア（0〜100）を付け、機種×月の内側で価格との関係を推定します。今回の推定値は、状態1点あたり <code>+0.94%</code> です。すべての価格を良品（スコア70）相当に補正します。</li>
+<li><strong>連鎖指数</strong>: 前月と当月の両方で3件以上ある機種について、補正後中央値の比を取ります。件数で重み付けした幾何平均で月々の変化をつなぎます。</li>
+<li><strong>直近30日の指数（毎日更新）</strong>: 月次とは別に、毎日更新する指数も出します。売れた出品は1日に数件しかないので、その日までの30日間に売れた出品をまとめ、月次と同じ計算（外れ値・状態補正・機種ごとの中央値）をします。30日前の値と、両方で3件以上ある機種の中央値の比でつなぎます。最初の30日間を基準（100）とし、そこから30日たつまでは基準の期間と比べます（期間が重なるので、動きは小さく出ます）。算出対象の機種が5つに足りない日は、前の日の値を据え置きます。直近21日の値は速報です（下の「限界」を参照）。出品中の同じ商品の値動きを毎日追う方法は使いません。中古の一点物は売れると消えるので、売れ残りの値下げだけを拾ってしまうためです。</li>
+<li><strong>検証用ヘドニック指数</strong>: 全取引をプールし、<code>log価格 = 機種固定効果 + 月ダミー + β×(状態−70)</code> を推定して、月ダミーを指数にします。</li>
+</ol>
+<h2>限界</h2>
+<ul>
+<li>掲載終了には、売れずに取り下げられた出品も含まれます。実際の成約価格とは誤差があります。</li><li>APIの検索結果に出てこない出品は観測できません。</li><li>件数が少ない月は、前月の値を据え置きます。算出対象の本数は表で確認できます。</li><li>直近30日の指数は、売れた件数の少ない機種では1件の出入りで中央値が大きく動きます。日ごとの細かな上下は、相場の動きとは限りません。</li><li>出品は3日続けて見えなくなってから「売れた」とみなすので、各月は月末の3日後の収集から速報として出します。</li><li>「売れた」にした出品が、在庫切れのあとの入荷や検索の並びの入れ替わりで検索に戻ってくることがあります。戻ってきた出品は「売れた」から外すので、過去の値も後から変わります。戻ってくる出品の9割は3週間以内に戻るので、各月は月末の21日後の収集で確定します（確定済みの最終月: なし）。直近30日の指数も、21日より新しい日の値は速報です。</li>
+</ul>
+<h2>確定した値の記録と改定</h2><ul><li>確定した月の総合指数は、確定した日に記録します（<a href="data/index_published.csv">記録のCSV</a>）。</li><li>名寄せの辞書の手直しや計算方法の変更で、確定した月の値が後から変わったときは、指数のページの表に「改定」と書き、確定したときの値を並べます。速報の値が変わるのは、改定に含めません。</li><li>まだ確定した月がないので、記録はありません。</li></ul>
+<h2>今回のデータ</h2>
+<ul><li>指数に使った成約推定: 98件</li><li>指数に入れなかった出品（理由が2つ以上ある出品は、それぞれに数えます）<ul><li>対象の店（上の「店の範囲」）以外の出品: 75件</li><li>楽天とYahoo!の両方に出ていた同じ在庫（1件にまとめた分）: 47件</li><li>外れ値: 15件</li><li>付属品・空き瓶・箱など、本体以外の出品: 12件</li><li>限定品・記念品など、値段の大きく違う型: 12件</li><li>セット・まとめ売り: 8件</li><li>カメラ以外（本・ミニチュアなど）: 2件</li><li>ジャンク・難あり品: 1件</li></ul></li></ul>
+</section>
+<footer>
+<p>本サイトは価格データの統計情報を提供するもので、特定の商品の売買を勧めるものではありません。掲載終了を成約とみなした推定値を含みます。</p>
+
+<p>【広告】「楽天で探す」のリンクは楽天アフィリエイトを利用しています。リンク先で購入があると、本サイトに紹介料が支払われることがあります。</p>
+<p><a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">Supported by Rakuten Developers</a> ／ <a href="https://developer.yahoo.co.jp/sitemap/" target="_blank" rel="noopener">Webサービス by Yahoo! JAPAN</a></p>
+<p>更新: 2026-11-14</p>
+</footer></div><script>
+(function(){
+  function fmt(v,unit,dec){ if(v===null||v===undefined) return '—';
+    return unit==='yen' ? '¥'+Math.round(v).toLocaleString('ja-JP') : v.toFixed(dec||1); }
+  document.querySelectorAll('.chart[data-chart]').forEach(function(el){
+    var d = JSON.parse(el.getAttribute('data-chart'));
+    var svg = el.querySelector('svg'), cross = el.querySelector('.crosshair'), tip = el.querySelector('.tip');
+    var idx = -1;
+    function show(i){
+      if(i<0||i>=d.x.length){ hide(); return; } idx=i;
+      var px = d.px[i]; cross.setAttribute('x1',px); cross.setAttribute('x2',px); cross.style.visibility='visible';
+      tip.textContent='';
+      var h=document.createElement('div'); h.className='h'; h.textContent=d.xlabels[i]; tip.appendChild(h);
+      d.series.forEach(function(s){
+        var r=document.createElement('div'); r.className='row';
+        var k=document.createElement('span'); k.className='key'; k.style.background='var('+s.color+')';
+        var v=document.createElement('strong'); v.textContent=fmt(s.values[i],d.unit,d.dec);
+        var n=document.createElement('span'); n.textContent=s.name; n.style.color='var(--text-secondary)';
+        r.appendChild(k); r.appendChild(v); r.appendChild(n); tip.appendChild(r);
+      });
+      var box = svg.getBoundingClientRect(), scale = box.width / d.w;
+      var left = px*scale + 12; if(left + 180 > box.width) left = px*scale - 190;
+      tip.style.left = Math.max(0,left)+'px'; tip.style.top='8px'; tip.style.visibility='visible';
+    }
+    function hide(){ cross.style.visibility='hidden'; tip.style.visibility='hidden'; }
+    function nearest(clientX){
+      var box = svg.getBoundingClientRect(), x = (clientX-box.left) * d.w / box.width, best=0, bd=1e9;
+      d.px.forEach(function(p,i){ var dd=Math.abs(p-x); if(dd<bd){bd=dd;best=i;} }); return best;
+    }
+    el.addEventListener('pointermove', function(e){ show(nearest(e.clientX)); });
+    el.addEventListener('pointerleave', hide);
+    el.addEventListener('focus', function(){ show(idx<0? d.x.length-1 : idx); });
+    el.addEventListener('blur', hide);
+    el.addEventListener('keydown', function(e){
+      if(e.key==='ArrowLeft'){ show(Math.max(0,idx-1)); e.preventDefault(); }
+      if(e.key==='ArrowRight'){ show(Math.min(d.x.length-1,idx+1)); e.preventDefault(); }
+    });
+  });
+
+  // 品目の表: 並べ替え・グループ絞り込み・検索
+  var table = document.getElementById('lens-table'); if(!table) return;
+  var tbody = table.tBodies[0], group = 'all', q = '';
+  function apply(){
+    Array.prototype.forEach.call(tbody.rows, function(r){
+      var okG = group==='all' || r.dataset.group===group;
+      var okQ = !q || r.dataset.search.indexOf(q) >= 0;
+      r.hidden = !(okG && okQ);
+    });
+  }
+  document.querySelectorAll('[data-group-filter]').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('[data-group-filter]').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true'); group = b.getAttribute('data-group-filter'); apply();
+    });
+  });
+  var s = document.getElementById('lens-search');
+  if(s) s.addEventListener('input', function(){ q = s.value.trim().toLowerCase(); apply(); });
+  Array.prototype.forEach.call(table.tHead.rows[0].cells, function(th, ci){
+    if(th.dataset.sort===undefined) return;
+    th.addEventListener('click', function(){
+      var asc = th.getAttribute('aria-sort') !== 'ascending';
+      Array.prototype.forEach.call(table.tHead.rows[0].cells, function(x){ x.removeAttribute('aria-sort'); });
+      th.setAttribute('aria-sort', asc?'ascending':'descending');
+      var rows = Array.prototype.slice.call(tbody.rows), num = th.dataset.sort==='num';
+      rows.sort(function(a,b){
+        var x=a.cells[ci].dataset.v, y=b.cells[ci].dataset.v;
+        if(num){ x = x===''? -Infinity : +x; y = y===''? -Infinity : +y; return asc? x-y : y-x; }
+        return asc? String(x).localeCompare(y,'ja') : String(y).localeCompare(x,'ja');
+      });
+      rows.forEach(function(r){ tbody.appendChild(r); });
+    });
+  });
+})();
+</script></body></html>

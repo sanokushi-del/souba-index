@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>日本酒・焼酎プレミア銘柄相場指数</title><meta name="description" content="入手困難な日本酒・焼酎の主要銘柄の店頭価格（プレミア価格を含む）を、箱の有無などを補正して毎月指数にしています。"><style>
+:root{
+  color-scheme: light;
+  --surface-0:#f4f3ef; --surface-1:#fcfcfb; --border:#e3e1da; --grid:#ecebe6;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#7a7974;
+  --series-1:#2a78d6; --series-2:#eb6834; --accent-wash:#e8f0fb; --banner:#fff4d6; --banner-ink:#5a4300;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --surface-0:#121211; --surface-1:#1a1a19; --border:#33332f; --grid:#2a2a27;
+    --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#8f8e86;
+    --series-1:#3987e5; --series-2:#d95926; --accent-wash:#1d2a3b; --banner:#3a3016; --banner-ink:#f3dd9a;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --surface-0:#121211; --surface-1:#1a1a19; --border:#33332f; --grid:#2a2a27;
+  --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#8f8e86;
+  --series-1:#3987e5; --series-2:#d95926; --accent-wash:#1d2a3b; --banner:#3a3016; --banner-ink:#f3dd9a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface-0);color:var(--text-primary);
+  font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;line-height:1.6;font-size:15px}
+a{color:var(--series-1)}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 64px}
+header h1{font-size:26px;margin:0 0 4px;letter-spacing:.02em}
+header p{margin:0;color:var(--text-secondary)}
+nav{margin-top:10px;font-size:14px} nav a{margin-right:16px}
+.banner{background:var(--banner);color:var(--banner-ink);border-radius:8px;padding:10px 14px;margin:16px 0;font-size:14px}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:16px}
+.card h2{font-size:17px;margin:0 0 4px} .card .sub{color:var(--text-secondary);font-size:13px;margin:0 0 12px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
+.tile{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px}
+.tile .label{font-size:13px;color:var(--text-secondary)} .tile .value{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.tile .note{font-size:12px;color:var(--text-muted)}
+.prov{margin:8px 0 0;font-size:13px;color:var(--text-secondary)}
+.chart{position:relative;outline:none} .chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart:focus-visible{box-shadow:0 0 0 2px var(--series-1);border-radius:6px}
+.axis text{fill:var(--text-muted);font-size:11px} .gridline{stroke:var(--grid);stroke-width:1}
+.baseline{stroke:var(--text-muted);stroke-width:1;stroke-dasharray:3 3;opacity:.6}
+.line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.dlabel{font-size:12px;fill:var(--text-secondary)}
+.crosshair{stroke:var(--text-muted);stroke-width:1;visibility:hidden}
+.tip{position:absolute;pointer-events:none;background:var(--surface-1);border:1px solid var(--border);border-radius:8px;
+  padding:8px 10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.12);visibility:hidden;min-width:150px;z-index:2}
+.tip .h{color:var(--text-secondary);margin-bottom:4px} .tip .row{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tip .key{width:14px;height:2px;border-radius:1px;display:inline-block} .tip strong{font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-secondary);margin-bottom:6px}
+.legend span{display:inline-flex;align-items:center;gap:6px} .legend i{width:16px;height:2px;border-radius:1px;display:inline-block}
+.multiples{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.multiples h3{font-size:14px;margin:0;font-weight:600} .multiples .m{color:var(--text-secondary);font-size:12px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.filters button{font:inherit;font-size:13px;border:1px solid var(--border);background:var(--surface-1);color:var(--text-primary);
+  padding:4px 12px;border-radius:999px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--accent-wash);border-color:var(--series-1);font-weight:600}
+.filters input{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--border);border-radius:8px;
+  background:var(--surface-1);color:var(--text-primary);min-width:200px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+th{color:var(--text-secondary);font-weight:600;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--surface-1)}
+th[aria-sort="ascending"]::after{content:" ▲"} th[aria-sort="descending"]::after{content:" ▼"}
+td.num{text-align:right;font-variant-numeric:tabular-nums} td.muted{color:var(--text-muted)}
+details summary{cursor:pointer;color:var(--text-secondary);font-size:13px;margin-top:12px}
+footer{margin-top:32px;color:var(--text-muted);font-size:12px} footer a{color:var(--text-secondary)}
+.only-narrow{display:none} @media (max-width:640px){.only-wide{display:none}.only-narrow{display:block}.tile .value{font-size:24px}.card{padding:16px}}
+.prose h2{font-size:18px;margin-top:28px} .prose li{margin:4px 0} .prose code{background:var(--accent-wash);padding:1px 5px;border-radius:4px}
+</style></head>
+<body><div class="wrap">
+<header><h1>日本酒・焼酎プレミア銘柄相場指数 <span style="font-size:14px;color:var(--text-muted)">β</span></h1>
+<p>入手困難な日本酒・焼酎の主要銘柄の店頭価格（プレミア価格を含む）を、箱の有無などを補正して毎月指数にしています。</p>
+<nav><a href="../index.html">ほかのジャンル</a><a href="index.html">指数</a><a href="methodology.html">算出方法</a><a href="data/index_monthly.csv">CSV（指数）</a><a href="data/index_daily.csv">CSV（日足）</a><a href="data/lens_monthly.csv">CSV（銘柄別）</a></nav>
+</header>
+
+
+<div class="tiles">
+ <div class="tile"><div class="label">総合指数（2026年10月・速報）</div><div class="value">100.0</div>
+   <div class="note">2026年10月＝100</div></div>
+ <div class="tile"><div class="label">前月比（速報）</div><div class="value">—</div>
+   <div class="note">算出対象 5 本</div></div>
+ <div class="tile"><div class="label">期初来</div><div class="value">±0.0%</div>
+   <div class="note">1か月</div></div>
+ <div class="tile"><div class="label">成約推定の件数</div><div class="value">24</div>
+   <div class="note">状態1点あたり価格 +0.6%</div></div>
+</div><p class="prov">2026年10月（速報・11/21ごろ確定）の値は速報です。「売れた」にした出品が、在庫切れのあとの入荷などで検索に戻ってくると取り消すので、月末から21日は値が変わります。</p>
+<section class="card"><h2>総合指数</h2>
+<p class="sub">2026年10月＝100。2本の線が近いほど、指数が状態の違いや品目の入れ替わりに左右されていないことを示します。</p>
+<div class="legend"><span><i style="background:var(--series-1)"></i>総合指数（状態調整・連鎖）</span><span><i style="background:var(--series-2)"></i>ヘドニック指数（検証用）</span></div><div class="only-wide"><div class="chart" tabindex="0" data-chart="{&quot;w&quot;: 720, &quot;x&quot;: [&quot;2026-10&quot;], &quot;xlabels&quot;: [&quot;2026年10月&quot;], &quot;px&quot;: [322.0], &quot;unit&quot;: &quot;index&quot;, &quot;dec&quot;: 0, &quot;series&quot;: [{&quot;name&quot;: &quot;総合（連鎖）&quot;, &quot;values&quot;: [100.0], &quot;color&quot;: &quot;--series-1&quot;}, {&quot;name&quot;: &quot;ヘドニック（検証用）&quot;, &quot;values&quot;: [100.0], &quot;color&quot;: &quot;--series-2&quot;}]}"><svg viewBox="0 0 720 280" role="img" aria-label="総合指数の推移"><g class="axis"><line class="gridline" x1="44" x2="600" y1="239.1" y2="239.1"/><text x="38" y="243.1" text-anchor="end">99</text><line class="gridline" x1="44" x2="600" y1="132.0" y2="132.0"/><text x="38" y="136.0" text-anchor="end">100</text><line class="gridline" x1="44" x2="600" y1="24.9" y2="24.9"/><text x="38" y="28.9" text-anchor="end">101</text><text x="322.0" y="272" text-anchor="middle">26/10</text></g><line class="baseline" x1="44" x2="600" y1="132.0" y2="132.0"/><path class="line" d="M322.0,132.0" style="stroke:var(--series-1)"/><circle cx="322.0" cy="132.0" r="4" style="fill:var(--series-1);stroke:var(--surface-1);stroke-width:2"/><path class="line" d="M322.0,132.0" style="stroke:var(--series-2)"/><circle cx="322.0" cy="132.0" r="4" style="fill:var(--series-2);stroke:var(--surface-1);stroke-width:2"/><text class="dlabel" x="332.0" y="136.0">ヘドニック 100</text><text class="dlabel" x="332.0" y="152.0">総合 100</text><line class="crosshair" x1="0" x2="0" y1="12" y2="252"/></svg><div class="tip" role="status"></div></div></div><div class="only-narrow"><div class="chart" tabindex="0" data-chart="{&quot;w&quot;: 380, &quot;x&quot;: [&quot;2026-10&quot;], &quot;xlabels&quot;: [&quot;2026年10月&quot;], &quot;px&quot;: [152.0], &quot;unit&quot;: &quot;index&quot;, &quot;dec&quot;: 0, &quot;series&quot;: [{&quot;name&quot;: &quot;総合（連鎖）&quot;, &quot;values&quot;: [100.0], &quot;color&quot;: &quot;--series-1&quot;}, {&quot;name&quot;: &quot;ヘドニック（検証用）&quot;, &quot;values&quot;: [100.0], &quot;color&quot;: &quot;--series-2&quot;}]}"><svg viewBox="0 0 380 300" role="img" aria-label="総合指数の推移"><g class="axis"><line class="gridline" x1="44" x2="260" y1="258.1" y2="258.1"/><text x="38" y="262.1" text-anchor="end">99</text><line class="gridline" x1="44" x2="260" y1="142.0" y2="142.0"/><text x="38" y="146.0" text-anchor="end">100</text><line class="gridline" x1="44" x2="260" y1="25.9" y2="25.9"/><text x="38" y="29.9" text-anchor="end">101</text><text x="152.0" y="292" text-anchor="middle">26/10</text></g><line class="baseline" x1="44" x2="260" y1="142.0" y2="142.0"/><path class="line" d="M152.0,142.0" style="stroke:var(--series-1)"/><circle cx="152.0" cy="142.0" r="4" style="fill:var(--series-1);stroke:var(--surface-1);stroke-width:2"/><path class="line" d="M152.0,142.0" style="stroke:var(--series-2)"/><circle cx="152.0" cy="142.0" r="4" style="fill:var(--series-2);stroke:var(--surface-1);stroke-width:2"/><text class="dlabel" x="162.0" y="146.0">ヘドニック 100</text><text class="dlabel" x="162.0" y="162.0">総合 100</text><line class="crosshair" x1="0" x2="0" y1="12" y2="272"/></svg><div class="tip" role="status"></div></div></div>
+<details><summary>数値の表を表示</summary><div class="tablewrap"><table><thead><tr><th>月</th><th>総合（連鎖）</th><th>ヘドニック</th><th>算出対象（本）</th></tr></thead>
+<tbody><tr><td>2026年10月（速報・11/21ごろ確定）</td><td class='num'>100.0</td><td class='num'>100.0</td><td class='num'>5</td></tr></tbody></table></div></details></section>
+<section class="card"><h2>直近30日の指数（毎日更新）</h2>
+<p class="sub">その日までの30日間に売れた出品で月次と同じ計算をして、30日前の値と比べてつなぎます（11/6までの30日間＝100。そこから30日たつまでは、この基準の期間と比べます）。1日ごとの売れた件数は少ないので、1日ごとの値ではなく30日の移動する窓で出します。売れたの判定に3日かかるので、最新は11/10です。月次の指数とは別の系列です。件数の少ない品目は1件の出入りで動くので、日ごとの細かな上下は相場の動きとは限りません。いまの値はすべて速報です。「売れた」にした出品が検索に戻ってくると取り消すので、21日ほどは後から変わります。</p>
+<p class="prov" style="margin:0 0 8px">11/10までの30日間（速報）: <strong>102.12</strong>（11/6比 ▲2.12%・算出対象 6 銘柄）</p>
+<div class="only-wide"><div class="chart" tabindex="0" data-chart="{&quot;w&quot;: 720, &quot;x&quot;: [&quot;2026-11-06&quot;, &quot;2026-11-07&quot;, &quot;2026-11-08&quot;, &quot;2026-11-09&quot;, &quot;2026-11-10&quot;], &quot;xlabels&quot;: [&quot;2026年11月6日&quot;, &quot;2026年11月7日&quot;, &quot;2026年11月8日&quot;, &quot;2026年11月9日&quot;, &quot;2026年11月10日&quot;], &quot;px&quot;: [44.0, 183.0, 322.0, 461.0, 600.0], &quot;unit&quot;: &quot;index&quot;, &quot;dec&quot;: 0, &quot;series&quot;: [{&quot;name&quot;: &quot;直近30日&quot;, &quot;values&quot;: [100.0, 99.87, 100.21, 100.59, 102.12], &quot;color&quot;: &quot;--series-1&quot;}]}"><svg viewBox="0 0 720 280" role="img" aria-label="直近30日の指数（毎日更新）"><g class="axis"><line class="gridline" x1="44" x2="600" y1="227.1" y2="227.1"/><text x="38" y="231.1" text-anchor="end">100</text><line class="gridline" x1="44" x2="600" y1="131.6" y2="131.6"/><text x="38" y="135.6" text-anchor="end">101</text><line class="gridline" x1="44" x2="600" y1="36.2" y2="36.2"/><text x="38" y="40.2" text-anchor="end">102</text><text x="44.0" y="272" text-anchor="middle">11/6</text><text x="183.0" y="272" text-anchor="middle">11/7</text><text x="322.0" y="272" text-anchor="middle">11/8</text><text x="461.0" y="272" text-anchor="middle">11/9</text><text x="600.0" y="272" text-anchor="middle">11/10</text></g><line class="baseline" x1="44" x2="600" y1="227.1" y2="227.1"/><path class="line" d="M44.0,227.1 L183.0,239.1 L322.0,207.4 L461.0,170.7 L600.0,24.9" style="stroke:var(--series-1)"/><circle cx="600.0" cy="24.9" r="4" style="fill:var(--series-1);stroke:var(--surface-1);stroke-width:2"/><text class="dlabel" x="610.0" y="28.9">直近30日 102</text><line class="crosshair" x1="0" x2="0" y1="12" y2="252"/></svg><div class="tip" role="status"></div></div></div><div class="only-narrow"><div class="chart" tabindex="0" data-chart="{&quot;w&quot;: 380, &quot;x&quot;: [&quot;2026-11-06&quot;, &quot;2026-11-07&quot;, &quot;2026-11-08&quot;, &quot;2026-11-09&quot;, &quot;2026-11-10&quot;], &quot;xlabels&quot;: [&quot;2026年11月6日&quot;, &quot;2026年11月7日&quot;, &quot;2026年11月8日&quot;, &quot;2026年11月9日&quot;, &quot;2026年11月10日&quot;], &quot;px&quot;: [44.0, 98.0, 152.0, 206.0, 260.0], &quot;unit&quot;: &quot;index&quot;, &quot;dec&quot;: 0, &quot;series&quot;: [{&quot;name&quot;: &quot;直近30日&quot;, &quot;values&quot;: [100.0, 99.87, 100.21, 100.59, 102.12], &quot;color&quot;: &quot;--series-1&quot;}]}"><svg viewBox="0 0 380 300" role="img" aria-label="直近30日の指数（毎日更新）"><g class="axis"><line class="gridline" x1="44" x2="260" y1="245.0" y2="245.0"/><text x="38" y="249.0" text-anchor="end">100</text><line class="gridline" x1="44" x2="260" y1="141.6" y2="141.6"/><text x="38" y="145.6" text-anchor="end">101</text><line class="gridline" x1="44" x2="260" y1="38.2" y2="38.2"/><text x="38" y="42.2" text-anchor="end">102</text><text x="44.0" y="292" text-anchor="middle">11/6</text><text x="98.0" y="292" text-anchor="middle">11/7</text><text x="152.0" y="292" text-anchor="middle">11/8</text><text x="206.0" y="292" text-anchor="middle">11/9</text><text x="260.0" y="292" text-anchor="middle">11/10</text></g><line class="baseline" x1="44" x2="260" y1="245.0" y2="245.0"/><path class="line" d="M44.0,245.0 L98.0,258.1 L152.0,223.7 L206.0,183.9 L260.0,25.9" style="stroke:var(--series-1)"/><circle cx="260.0" cy="25.9" r="4" style="fill:var(--series-1);stroke:var(--surface-1);stroke-width:2"/><text class="dlabel" x="270.0" y="29.9">直近30日 102</text><line class="crosshair" x1="0" x2="0" y1="12" y2="272"/></svg><div class="tip" role="status"></div></div></div>
+<details><summary>数値の表を表示</summary><div class="tablewrap"><table><thead><tr><th>日</th><th>指数</th><th>算出対象</th></tr></thead>
+<tbody><tr><td>2026年11月10日（速報）</td><td class='num'>102.12</td><td class='num'>6</td></tr><tr><td>2026年11月9日（速報）</td><td class='num'>100.59</td><td class='num'>6</td></tr><tr><td>2026年11月8日（速報）</td><td class='num'>100.21</td><td class='num'>6</td></tr><tr><td>2026年11月7日（速報）</td><td class='num'>99.87</td><td class='num'>6</td></tr><tr><td>2026年11月6日（速報）</td><td class='num'>100.00</td><td class='num'>7</td></tr></tbody></table></div></details></section><section class="card"><h2>グループ別の指数</h2>
+<p class="sub">比べやすいように縦軸をそろえています。</p><div class="multiples"><div><h3>日本酒</h3><div class="m">100.0（期初来 ±0.0%）</div><div class="chart" tabindex="0" data-chart="{&quot;w&quot;: 360, &quot;x&quot;: [&quot;2026-10&quot;], &quot;xlabels&quot;: [&quot;2026年10月&quot;], &quot;px&quot;: [196.0], &quot;unit&quot;: &quot;index&quot;, &quot;dec&quot;: 1, &quot;series&quot;: [{&quot;name&quot;: &quot;日本酒&quot;, &quot;values&quot;: [100.0], &quot;color&quot;: &quot;--series-1&quot;}]}"><svg viewBox="0 0 360 170" role="img" aria-label="日本酒の指数"><g class="axis"><line class="gridline" x1="44" x2="348" y1="142.0" y2="142.0"/><text x="38" y="146.0" text-anchor="end">99</text><line class="gridline" x1="44" x2="348" y1="109.5" y2="109.5"/><text x="38" y="113.5" text-anchor="end">99.5</text><line class="gridline" x1="44" x2="348" y1="77.0" y2="77.0"/><text x="38" y="81.0" text-anchor="end">100</text><line class="gridline" x1="44" x2="348" y1="44.5" y2="44.5"/><text x="38" y="48.5" text-anchor="end">100.5</text><line class="gridline" x1="44" x2="348" y1="12.0" y2="12.0"/><text x="38" y="16.0" text-anchor="end">101</text><text x="196.0" y="162" text-anchor="middle">26/10</text></g><line class="baseline" x1="44" x2="348" y1="77.0" y2="77.0"/><path class="line" d="M196.0,77.0" style="stroke:var(--series-1)"/><circle cx="196.0" cy="77.0" r="4" style="fill:var(--series-1);stroke:var(--surface-1);stroke-width:2"/><line class="crosshair" x1="0" x2="0" y1="12" y2="142"/></svg><div class="tip" role="status"></div></div></div><div><h3>焼酎</h3><div class="m">100.0（期初来 ±0.0%）</div><div class="chart" tabindex="0" data-chart="{&quot;w&quot;: 360, &quot;x&quot;: [&quot;2026-10&quot;], &quot;xlabels&quot;: [&quot;2026年10月&quot;], &quot;px&quot;: [196.0], &quot;unit&quot;: &quot;index&quot;, &quot;dec&quot;: 1, &quot;series&quot;: [{&quot;name&quot;: &quot;焼酎&quot;, &quot;values&quot;: [100.0], &quot;color&quot;: &quot;--series-1&quot;}]}"><svg viewBox="0 0 360 170" role="img" aria-label="焼酎の指数"><g class="axis"><line class="gridline" x1="44" x2="348" y1="142.0" y2="142.0"/><text x="38" y="146.0" text-anchor="end">99</text><line class="gridline" x1="44" x2="348" y1="109.5" y2="109.5"/><text x="38" y="113.5" text-anchor="end">99.5</text><line class="gridline" x1="44" x2="348" y1="77.0" y2="77.0"/><text x="38" y="81.0" text-anchor="end">100</text><line class="gridline" x1="44" x2="348" y1="44.5" y2="44.5"/><text x="38" y="48.5" text-anchor="end">100.5</text><line class="gridline" x1="44" x2="348" y1="12.0" y2="12.0"/><text x="38" y="16.0" text-anchor="end">101</text><text x="196.0" y="162" text-anchor="middle">26/10</text></g><line class="baseline" x1="44" x2="348" y1="77.0" y2="77.0"/><path class="line" d="M196.0,77.0" style="stroke:var(--series-1)"/><circle cx="196.0" cy="77.0" r="4" style="fill:var(--series-1);stroke:var(--surface-1);stroke-width:2"/><line class="crosshair" x1="0" x2="0" y1="12" y2="142"/></svg><div class="tip" role="status"></div></div></div></div></section><section class="card"><h2>銘柄別の相場</h2>
+<p class="sub">価格は状態を「箱付き・未開栓（スコア70）」相当に補正した、2026年10月の成約推定価格の中央値です。件数が3件未満の月は「—」です。</p>
+<div class="filters"><button data-group-filter="all" aria-pressed="true">すべて</button><button data-group-filter="日本酒" aria-pressed="false">日本酒</button><button data-group-filter="焼酎" aria-pressed="false">焼酎</button><input id="lens-search" type="search" placeholder="銘柄名・容量で検索"></div>
+<div class="tablewrap"><table id="lens-table"><thead><tr>
+<th data-sort="str">銘柄</th><th data-sort="str">グループ</th><th data-sort="str">容量</th><th data-sort="num">相場（中央値）</th>
+<th data-sort="num">3か月</th><th data-sort="num">期初来</th><th data-sort="num">当月件数</th><th data-sort="num">売れるまで</th><th>推移</th><th>楽天で探す（広告）</th>
+</tr></thead><tbody><tr data-group="日本酒" data-search="十四代 本丸 秘伝玉返し 1800ml"><td data-v="十四代 本丸 秘伝玉返し">十四代 本丸 秘伝玉返し</td><td data-v="日本酒" class="muted">日本酒</td><td data-v="1800ml" class="muted">1800ml</td><td class="num" data-v="46466">¥46,466</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="3">3</td><td class="num" data-v="8">8日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E5%8D%81%E5%9B%9B%E4%BB%A3%20%E6%9C%AC%E4%B8%B8%201800ml/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="日本酒" data-search="獺祭 磨き その先へ 720ml 720ml"><td data-v="獺祭 磨き その先へ 720ml">獺祭 磨き その先へ 720ml</td><td data-v="日本酒" class="muted">日本酒</td><td data-v="720ml" class="muted">720ml</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="">—</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E7%8D%BA%E7%A5%AD%20%E3%81%9D%E3%81%AE%E5%85%88%E3%81%B8%20720ml/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="日本酒" data-search="獺祭 純米大吟醸 磨き二割三分 1800ml 1800ml"><td data-v="獺祭 純米大吟醸 磨き二割三分 1800ml">獺祭 純米大吟醸 磨き二割三分 1800ml</td><td data-v="日本酒" class="muted">日本酒</td><td data-v="1800ml" class="muted">1800ml</td><td class="num" data-v="13217">¥13,217</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="3">3</td><td class="num" data-v="12">12日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E7%8D%BA%E7%A5%AD%20%E7%A3%A8%E3%81%8D%E4%BA%8C%E5%89%B2%E4%B8%89%E5%88%86%201800ml/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="日本酒" data-search="獺祭 純米大吟醸 磨き二割三分 720ml 720ml"><td data-v="獺祭 純米大吟醸 磨き二割三分 720ml">獺祭 純米大吟醸 磨き二割三分 720ml</td><td data-v="日本酒" class="muted">日本酒</td><td data-v="720ml" class="muted">720ml</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="12.5">12日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E7%8D%BA%E7%A5%AD%20%E7%A3%A8%E3%81%8D%E4%BA%8C%E5%89%B2%E4%B8%89%E5%88%86%20720ml/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="日本酒" data-search="飛露喜 特別純米 1800ml 1800ml"><td data-v="飛露喜 特別純米 1800ml">飛露喜 特別純米 1800ml</td><td data-v="日本酒" class="muted">日本酒</td><td data-v="1800ml" class="muted">1800ml</td><td class="num" data-v="12913">¥12,913</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="5">5</td><td class="num" data-v="13">13日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E9%A3%9B%E9%9C%B2%E5%96%9C%20%E7%89%B9%E5%88%A5%E7%B4%94%E7%B1%B3%201800ml/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="日本酒" data-search="飛露喜 特別純米 720ml 720ml"><td data-v="飛露喜 特別純米 720ml">飛露喜 特別純米 720ml</td><td data-v="日本酒" class="muted">日本酒</td><td data-v="720ml" class="muted">720ml</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="">—</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E9%A3%9B%E9%9C%B2%E5%96%9C%20%E7%89%B9%E5%88%A5%E7%B4%94%E7%B1%B3%20720ml/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="日本酒" data-search="黒龍 しずく 1800ml 1800ml"><td data-v="黒龍 しずく 1800ml">黒龍 しずく 1800ml</td><td data-v="日本酒" class="muted">日本酒</td><td data-v="1800ml" class="muted">1800ml</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="">—</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E9%BB%92%E9%BE%8D%20%E3%81%97%E3%81%9A%E3%81%8F%201800ml/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="焼酎" data-search="伊佐美 1800ml 1800ml"><td data-v="伊佐美 1800ml">伊佐美 1800ml</td><td data-v="焼酎" class="muted">焼酎</td><td data-v="1800ml" class="muted">1800ml</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="7">7日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E4%BC%8A%E4%BD%90%E7%BE%8E%201800ml/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="焼酎" data-search="村尾 1800ml 1800ml"><td data-v="村尾 1800ml">村尾 1800ml</td><td data-v="焼酎" class="muted">焼酎</td><td data-v="1800ml" class="muted">1800ml</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="3">3日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E6%9D%91%E5%B0%BE%201800ml%20%E7%84%BC%E9%85%8E/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="焼酎" data-search="森伊蔵 1800ml 1800ml"><td data-v="森伊蔵 1800ml">森伊蔵 1800ml</td><td data-v="焼酎" class="muted">焼酎</td><td data-v="1800ml" class="muted">1800ml</td><td class="num" data-v="19826">¥19,826</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="3">3</td><td class="num" data-v="18">18日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E6%A3%AE%E4%BC%8A%E8%94%B5%201800ml/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="焼酎" data-search="森伊蔵 720ml 720ml"><td data-v="森伊蔵 720ml">森伊蔵 720ml</td><td data-v="焼酎" class="muted">焼酎</td><td data-v="720ml" class="muted">720ml</td><td class="num" data-v="17600">¥17,600</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="3">3</td><td class="num" data-v="6">6日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E6%A3%AE%E4%BC%8A%E8%94%B5%20720ml/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="焼酎" data-search="百年の孤独 720ml 720ml"><td data-v="百年の孤独 720ml">百年の孤独 720ml</td><td data-v="焼酎" class="muted">焼酎</td><td data-v="720ml" class="muted">720ml</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="14">14日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E7%99%BE%E5%B9%B4%E3%81%AE%E5%AD%A4%E7%8B%AC%20720ml/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="焼酎" data-search="魔王 1800ml 1800ml"><td data-v="魔王 1800ml">魔王 1800ml</td><td data-v="焼酎" class="muted">焼酎</td><td data-v="1800ml" class="muted">1800ml</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="0">0日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E9%AD%94%E7%8E%8B%201800ml%20%E7%84%BC%E9%85%8E/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr><tr data-group="焼酎" data-search="魔王 720ml 720ml"><td data-v="魔王 720ml">魔王 720ml</td><td data-v="焼酎" class="muted">焼酎</td><td data-v="720ml" class="muted">720ml</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="">—</td><td class="num" data-v="0">0</td><td class="num" data-v="1">1日</td><td></td><td><a href="https://search.rakuten.co.jp/search/mall/%E9%AD%94%E7%8E%8B%20720ml%20%E7%84%BC%E9%85%8E/" target="_blank" rel="sponsored noopener">楽天で探す</a></td></tr></tbody></table></div></section>
+<footer>
+<p>本サイトは価格データの統計情報を提供するもので、特定の商品の売買を勧めるものではありません。掲載終了を成約とみなした推定値を含みます。</p>
+<p>お酒は20歳になってから。20歳未満の者の飲酒は法律で禁止されています。</p>
+<p>【広告】「楽天で探す」のリンクは楽天アフィリエイトを利用しています。リンク先で購入があると、本サイトに紹介料が支払われることがあります。</p>
+<p><a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">Supported by Rakuten Developers</a> ／ <a href="https://developer.yahoo.co.jp/sitemap/" target="_blank" rel="noopener">Webサービス by Yahoo! JAPAN</a></p>
+<p>更新: 2026-11-14</p>
+</footer></div><script>
+(function(){
+  function fmt(v,unit,dec){ if(v===null||v===undefined) return '—';
+    return unit==='yen' ? '¥'+Math.round(v).toLocaleString('ja-JP') : v.toFixed(dec||1); }
+  document.querySelectorAll('.chart[data-chart]').forEach(function(el){
+    var d = JSON.parse(el.getAttribute('data-chart'));
+    var svg = el.querySelector('svg'), cross = el.querySelector('.crosshair'), tip = el.querySelector('.tip');
+    var idx = -1;
+    function show(i){
+      if(i<0||i>=d.x.length){ hide(); return; } idx=i;
+      var px = d.px[i]; cross.setAttribute('x1',px); cross.setAttribute('x2',px); cross.style.visibility='visible';
+      tip.textContent='';
+      var h=document.createElement('div'); h.className='h'; h.textContent=d.xlabels[i]; tip.appendChild(h);
+      d.series.forEach(function(s){
+        var r=document.createElement('div'); r.className='row';
+        var k=document.createElement('span'); k.className='key'; k.style.background='var('+s.color+')';
+        var v=document.createElement('strong'); v.textContent=fmt(s.values[i],d.unit,d.dec);
+        var n=document.createElement('span'); n.textContent=s.name; n.style.color='var(--text-secondary)';
+        r.appendChild(k); r.appendChild(v); r.appendChild(n); tip.appendChild(r);
+      });
+      var box = svg.getBoundingClientRect(), scale = box.width / d.w;
+      var left = px*scale + 12; if(left + 180 > box.width) left = px*scale - 190;
+      tip.style.left = Math.max(0,left)+'px'; tip.style.top='8px'; tip.style.visibility='visible';
+    }
+    function hide(){ cross.style.visibility='hidden'; tip.style.visibility='hidden'; }
+    function nearest(clientX){
+      var box = svg.getBoundingClientRect(), x = (clientX-box.left) * d.w / box.width, best=0, bd=1e9;
+      d.px.forEach(function(p,i){ var dd=Math.abs(p-x); if(dd<bd){bd=dd;best=i;} }); return best;
+    }
+    el.addEventListener('pointermove', function(e){ show(nearest(e.clientX)); });
+    el.addEventListener('pointerleave', hide);
+    el.addEventListener('focus', function(){ show(idx<0? d.x.length-1 : idx); });
+    el.addEventListener('blur', hide);
+    el.addEventListener('keydown', function(e){
+      if(e.key==='ArrowLeft'){ show(Math.max(0,idx-1)); e.preventDefault(); }
+      if(e.key==='ArrowRight'){ show(Math.min(d.x.length-1,idx+1)); e.preventDefault(); }
+    });
+  });
+
+  // 品目の表: 並べ替え・グループ絞り込み・検索
+  var table = document.getElementById('lens-table'); if(!table) return;
+  var tbody = table.tBodies[0], group = 'all', q = '';
+  function apply(){
+    Array.prototype.forEach.call(tbody.rows, function(r){
+      var okG = group==='all' || r.dataset.group===group;
+      var okQ = !q || r.dataset.search.indexOf(q) >= 0;
+      r.hidden = !(okG && okQ);
+    });
+  }
+  document.querySelectorAll('[data-group-filter]').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('[data-group-filter]').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true'); group = b.getAttribute('data-group-filter'); apply();
+    });
+  });
+  var s = document.getElementById('lens-search');
+  if(s) s.addEventListener('input', function(){ q = s.value.trim().toLowerCase(); apply(); });
+  Array.prototype.forEach.call(table.tHead.rows[0].cells, function(th, ci){
+    if(th.dataset.sort===undefined) return;
+    th.addEventListener('click', function(){
+      var asc = th.getAttribute('aria-sort') !== 'ascending';
+      Array.prototype.forEach.call(table.tHead.rows[0].cells, function(x){ x.removeAttribute('aria-sort'); });
+      th.setAttribute('aria-sort', asc?'ascending':'descending');
+      var rows = Array.prototype.slice.call(tbody.rows), num = th.dataset.sort==='num';
+      rows.sort(function(a,b){
+        var x=a.cells[ci].dataset.v, y=b.cells[ci].dataset.v;
+        if(num){ x = x===''? -Infinity : +x; y = y===''? -Infinity : +y; return asc? x-y : y-x; }
+        return asc? String(x).localeCompare(y,'ja') : String(y).localeCompare(x,'ja');
+      });
+      rows.forEach(function(r){ tbody.appendChild(r); });
+    });
+  });
+})();
+</script></body></html>

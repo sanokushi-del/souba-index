@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>相場指数</title><meta name="description" content="楽天市場・Yahoo!ショッピングの公式APIで毎日集めた出品から、中古品・プレミア品の相場と、PCパーツの新品の店頭価格を指数にしています。計算のしかたは、ジャンルごとの「算出方法」のページで公開しています。"><style>
+:root{
+  color-scheme: light;
+  --surface-0:#f4f3ef; --surface-1:#fcfcfb; --border:#e3e1da; --grid:#ecebe6;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#7a7974;
+  --series-1:#2a78d6; --series-2:#eb6834; --accent-wash:#e8f0fb; --banner:#fff4d6; --banner-ink:#5a4300;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --surface-0:#121211; --surface-1:#1a1a19; --border:#33332f; --grid:#2a2a27;
+    --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#8f8e86;
+    --series-1:#3987e5; --series-2:#d95926; --accent-wash:#1d2a3b; --banner:#3a3016; --banner-ink:#f3dd9a;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --surface-0:#121211; --surface-1:#1a1a19; --border:#33332f; --grid:#2a2a27;
+  --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#8f8e86;
+  --series-1:#3987e5; --series-2:#d95926; --accent-wash:#1d2a3b; --banner:#3a3016; --banner-ink:#f3dd9a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface-0);color:var(--text-primary);
+  font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;line-height:1.6;font-size:15px}
+a{color:var(--series-1)}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 64px}
+header h1{font-size:26px;margin:0 0 4px;letter-spacing:.02em}
+header p{margin:0;color:var(--text-secondary)}
+nav{margin-top:10px;font-size:14px} nav a{margin-right:16px}
+.banner{background:var(--banner);color:var(--banner-ink);border-radius:8px;padding:10px 14px;margin:16px 0;font-size:14px}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:16px}
+.card h2{font-size:17px;margin:0 0 4px} .card .sub{color:var(--text-secondary);font-size:13px;margin:0 0 12px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
+.tile{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px}
+.tile .label{font-size:13px;color:var(--text-secondary)} .tile .value{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.tile .note{font-size:12px;color:var(--text-muted)}
+.prov{margin:8px 0 0;font-size:13px;color:var(--text-secondary)}
+.chart{position:relative;outline:none} .chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart:focus-visible{box-shadow:0 0 0 2px var(--series-1);border-radius:6px}
+.axis text{fill:var(--text-muted);font-size:11px} .gridline{stroke:var(--grid);stroke-width:1}
+.baseline{stroke:var(--text-muted);stroke-width:1;stroke-dasharray:3 3;opacity:.6}
+.line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.dlabel{font-size:12px;fill:var(--text-secondary)}
+.crosshair{stroke:var(--text-muted);stroke-width:1;visibility:hidden}
+.tip{position:absolute;pointer-events:none;background:var(--surface-1);border:1px solid var(--border);border-radius:8px;
+  padding:8px 10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.12);visibility:hidden;min-width:150px;z-index:2}
+.tip .h{color:var(--text-secondary);margin-bottom:4px} .tip .row{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tip .key{width:14px;height:2px;border-radius:1px;display:inline-block} .tip strong{font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-secondary);margin-bottom:6px}
+.legend span{display:inline-flex;align-items:center;gap:6px} .legend i{width:16px;height:2px;border-radius:1px;display:inline-block}
+.multiples{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.multiples h3{font-size:14px;margin:0;font-weight:600} .multiples .m{color:var(--text-secondary);font-size:12px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.filters button{font:inherit;font-size:13px;border:1px solid var(--border);background:var(--surface-1);color:var(--text-primary);
+  padding:4px 12px;border-radius:999px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--accent-wash);border-color:var(--series-1);font-weight:600}
+.filters input{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--border);border-radius:8px;
+  background:var(--surface-1);color:var(--text-primary);min-width:200px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+th{color:var(--text-secondary);font-weight:600;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--surface-1)}
+th[aria-sort="ascending"]::after{content:" ▲"} th[aria-sort="descending"]::after{content:" ▼"}
+td.num{text-align:right;font-variant-numeric:tabular-nums} td.muted{color:var(--text-muted)}
+details summary{cursor:pointer;color:var(--text-secondary);font-size:13px;margin-top:12px}
+footer{margin-top:32px;color:var(--text-muted);font-size:12px} footer a{color:var(--text-secondary)}
+.only-narrow{display:none} @media (max-width:640px){.only-wide{display:none}.only-narrow{display:block}.tile .value{font-size:24px}.card{padding:16px}}
+.prose h2{font-size:18px;margin-top:28px} .prose li{margin:4px 0} .prose code{background:var(--accent-wash);padding:1px 5px;border-radius:4px}
+
+.genres{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:12px}
+.genre{display:block;background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:18px;
+  color:inherit;text-decoration:none}
+.genre:hover,.genre:focus-visible{border-color:var(--series-1)}
+.genre h3{margin:0 0 4px;font-size:16px;color:var(--series-1)}
+.genre .lead{margin:0 0 12px;font-size:13px;color:var(--text-secondary)}
+.genre .vals{display:flex;gap:24px;flex-wrap:wrap}
+.genre .label{display:block;font-size:12px;color:var(--text-secondary)}
+.genre .v{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.genre .chg{display:block;font-size:12px;color:var(--text-muted)}
+.genre .note{margin:12px 0 0;font-size:12px;color:var(--text-muted)}
+.sec h2{font-size:18px;margin:32px 0 2px} .sec>p{margin:0;color:var(--text-secondary);font-size:13px}
+</style></head>
+<body><div class="wrap">
+<header><h1>相場指数 <span style="font-size:14px;color:var(--text-muted)">β</span></h1><p>楽天市場・Yahoo!ショッピングの公式APIで毎日集めた出品から、中古品・プレミア品の相場と、PCパーツの新品の店頭価格を指数にしています。計算のしかたは、ジャンルごとの「算出方法」のページで公開しています。</p></header>
+<section class="sec"><h2>売れた価格の指数</h2><p>掲載が終わった出品を「売れた」とみなし、その価格から作る指数です。</p><div class="genres"><a class="genre" href="watch/index.html"><h3>高級腕時計相場指数</h3><p class="lead">高級腕時計の主要モデルの店頭価格（新品・中古）を、状態の違いを補正して毎月指数にしています。</p><div class="vals"><div><span class="label">2026年10月（速報・11/21ごろ確定）</span><span class="v">100.0</span><span class="chg">2026年10月＝100</span></div><div><span class="label">直近30日（11/10まで・速報）</span><span class="v">99.84</span></div></div></a><a class="genre" href="whisky/index.html"><h3>ジャパニーズウイスキー相場指数</h3><p class="lead">ジャパニーズウイスキーの主要銘柄の店頭価格（プレミア価格を含む）を、箱の有無などを補正して毎月指数にしています。</p><div class="vals"><div><span class="label">2026年10月（速報・11/21ごろ確定）</span><span class="v">100.0</span><span class="chg">2026年10月＝100</span></div><div><span class="label">直近30日（11/10まで・速報）</span><span class="v">101.68</span></div></div></a><a class="genre" href="tcg/index.html"><h3>トレカ未開封BOX相場指数</h3><p class="lead">ポケモンカード・ワンピースカードの未開封BOXの店頭価格を、シュリンクの有無などを補正して毎月指数にしています。</p><div class="vals"><div><span class="label">2026年10月（速報・11/21ごろ確定）</span><span class="v">100.0</span><span class="chg">2026年10月＝100</span></div><div><span class="label">直近30日（11/10まで・速報）</span><span class="v">100.00</span></div></div></a><a class="genre" href="bag/index.html"><h3>ルイ・ヴィトン定番バッグ相場指数</h3><p class="lead">ルイ・ヴィトンの定番バッグの店頭価格（新品・中古）を、状態の違いを補正して毎月指数にしています。</p><div class="vals"><div><span class="label">2026年10月（速報・11/21ごろ確定）</span><span class="v">100.0</span><span class="chg">2026年10月＝100</span></div><div><span class="label">直近30日（11/10まで・速報）</span><span class="v">99.11</span></div></div><p class="note">月の件数が少なく、1か月の動きはぶれが大きいジャンルです。3か月ほどの流れで見てください。</p></a><a class="genre" href="sneaker/index.html"><h3>スニーカー相場指数</h3><p class="lead">定番スニーカーの店頭価格（新品・中古）を、状態の違いを補正して毎月指数にしています。</p><div class="vals"><div><span class="label">2026年10月（速報・11/21ごろ確定）</span><span class="v">100.0</span><span class="chg">2026年10月＝100</span></div><div><span class="label">直近30日（11/10まで・速報）</span><span class="v">101.03</span></div></div><p class="note">月の件数が少なく、1か月の動きはぶれが大きいジャンルです。3か月ほどの流れで見てください。</p></a><a class="genre" href="camera/index.html"><h3>フィルムカメラ相場指数</h3><p class="lead">フィルムカメラ・高級コンパクトの主要機種の中古価格を、状態の違いを補正して毎月指数にしています。</p><div class="vals"><div><span class="label">2026年10月（速報・11/21ごろ確定）</span><span class="v">100.0</span><span class="chg">2026年10月＝100</span></div><div><span class="label">直近30日（11/10まで・速報）</span><span class="v">100.97</span></div></div><p class="note">月の件数が少なく、1か月の動きはぶれが大きいジャンルです。3か月ほどの流れで見てください。</p></a><a class="genre" href="lens/index.html"><h3>オールドレンズ相場指数</h3><p class="lead">中古のオールドレンズの定番の価格を、状態の違いを補正して毎月指数にしています。</p><div class="vals"><div><span class="label">2026年10月（速報・11/21ごろ確定）</span><span class="v">100.0</span><span class="chg">2026年10月＝100</span></div><div><span class="label">直近30日（11/10まで・速報）</span><span class="v">93.72</span></div></div><p class="note">月の件数が少なく、1か月の動きはぶれが大きいジャンルです。3か月ほどの流れで見てください。</p></a><a class="genre" href="sake/index.html"><h3>日本酒・焼酎プレミア銘柄相場指数</h3><p class="lead">入手困難な日本酒・焼酎の主要銘柄の店頭価格（プレミア価格を含む）を、箱の有無などを補正して毎月指数にしています。</p><div class="vals"><div><span class="label">2026年10月（速報・11/21ごろ確定）</span><span class="v">100.0</span><span class="chg">2026年10月＝100</span></div><div><span class="label">直近30日（11/10まで・速報）</span><span class="v">102.12</span></div></div><p class="note">月の件数が少なく、1か月の動きはぶれが大きいジャンルです。3か月ほどの流れで見てください。</p></a><a class="genre" href="lego/index.html"><h3>LEGO 廃盤セット相場指数</h3><p class="lead">LEGO の人気セット（廃盤を含む）の店頭価格を、未開封かどうかを補正して毎月指数にしています。</p><div class="vals"><div><span class="label">2026年10月（速報・11/21ごろ確定）</span><span class="v">100.0</span><span class="chg">2026年10月＝100</span></div><div><span class="label">直近30日（11/10まで・速報）</span><span class="v">106.77</span></div></div><p class="note">月の件数が少なく、1か月の動きはぶれが大きいジャンルです。3か月ほどの流れで見てください。</p></a></div></section><section class="sec"><h2>新品の店頭価格の指数</h2><p>在庫ありで出ている新品の、店頭の表示価格から作る指数です。</p><div class="genres"><a class="genre" href="memory/index.html"><h3>PCメモリ価格指数</h3><p class="lead">パソコン用メモリ（DDR5・DDR4）の主な規格の新品の店頭価格を、毎月指数にしています。</p><div class="vals"><div><span class="label">2026年11月（速報・11/13まで）</span><span class="v">100.0</span><span class="chg">2026年11月＝100</span></div><div><span class="label">日足（11/13）</span><span class="v">99.79</span></div></div></a><a class="genre" href="gpu/index.html"><h3>グラフィックボード価格指数</h3><p class="lead">グラフィックボード（GeForce・Radeon）の主なGPUの新品の店頭価格を、毎月指数にしています。</p><div class="vals"><div><span class="label">2026年11月（速報・11/13まで）</span><span class="v">100.0</span><span class="chg">2026年11月＝100</span></div><div><span class="label">日足（11/13）</span><span class="v">100.70</span></div></div></a></div></section>
+<footer>
+<p>本サイトは価格データの統計情報を提供するもので、特定の商品の売買を勧めるものではありません。
+売れた価格の指数は、掲載終了を成約とみなした推定値を含みます。新品の店頭価格の指数は表示価格の統計で、実際に売れた価格ではありません。</p>
+<p><a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">Supported by Rakuten Developers</a> ／ <a href="https://developer.yahoo.co.jp/sitemap/" target="_blank" rel="noopener">Webサービス by Yahoo! JAPAN</a></p>
+<p>更新: 2026-11-14</p>
+</footer></div></body></html>
