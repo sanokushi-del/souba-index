@@ -3,85 +3,97 @@
 <title>算出方法｜トレカ未開封BOX相場指数</title><meta name="description" content="ポケモンカード・ワンピースカードの未開封BOXの店頭価格を、シュリンクの有無などを補正して毎月指数にしています。"><style>
 :root{
   color-scheme: light;
-  --surface-0:#f4f3ef; --surface-1:#fcfcfb; --border:#e3e1da; --grid:#ecebe6;
-  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#7a7974;
-  --series-1:#2a78d6; --series-2:#eb6834; --accent-wash:#e8f0fb; --banner:#fff4d6; --banner-ink:#5a4300;
-  --up:#d1403a; --down:#1f6fd0; --up-wash:#fdeceb; --down-wash:#e8f0fb; --shadow:0 1px 2px rgba(20,24,40,.05),0 8px 24px rgba(20,24,40,.06);
+  --surface-0:#efe9da; --surface-1:#fffdf5; --border:#d8d0bb; --grid:#e6dfcc; --dot:rgba(17,17,17,.07);
+  --ink:#111111; --hard:#111111; --accent:#ffe100; --accent-ink:#111111; --on-ink:#fffdf5;
+  --text-primary:#111111; --text-secondary:#4a4740; --text-muted:#777262;
+  --series-1:#0046c8; --series-2:#e8590c; --accent-wash:#fff3a0; --banner:#fff3a0; --banner-ink:#3d3400;
+  --up:#e60012; --down:#0046c8; --up-wash:#ffe0dc; --down-wash:#dfe8ff; --shadow:5px 5px 0 var(--hard);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme: dark;
-    --surface-0:#121211; --surface-1:#1a1a19; --border:#33332f; --grid:#2a2a27;
-    --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#8f8e86;
-    --series-1:#3987e5; --series-2:#d95926; --accent-wash:#1d2a3b; --banner:#3a3016; --banner-ink:#f3dd9a;
-    --up:#ff7068; --down:#62a8f5; --up-wash:#3a1f1d; --down-wash:#1d2a3b; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+    --surface-0:#0c0c0b; --surface-1:#171716; --border:#3a3934; --grid:#2a2926; --dot:rgba(255,255,255,.05);
+    --ink:#f3eedd; --hard:#ffe100; --accent:#ffe100; --accent-ink:#111111; --on-ink:#111111;
+    --text-primary:#ffffff; --text-secondary:#c9c5b6; --text-muted:#928e80;
+    --series-1:#5aa2ff; --series-2:#ff8a3d; --accent-wash:#3a3410; --banner:#3a3410; --banner-ink:#ffe98a;
+    --up:#ff5a52; --down:#62a8f5; --up-wash:#3d1a18; --down-wash:#16284a; --shadow:5px 5px 0 var(--hard);
   }
 }
 :root[data-theme="dark"]{
   color-scheme: dark;
-  --surface-0:#121211; --surface-1:#1a1a19; --border:#33332f; --grid:#2a2a27;
-  --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#8f8e86;
-  --series-1:#3987e5; --series-2:#d95926; --accent-wash:#1d2a3b; --banner:#3a3016; --banner-ink:#f3dd9a;
-    --up:#ff7068; --down:#62a8f5; --up-wash:#3a1f1d; --down-wash:#1d2a3b; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  --surface-0:#0c0c0b; --surface-1:#171716; --border:#3a3934; --grid:#2a2926; --dot:rgba(255,255,255,.05);
+  --ink:#f3eedd; --hard:#ffe100; --accent:#ffe100; --accent-ink:#111111; --on-ink:#111111;
+  --text-primary:#ffffff; --text-secondary:#c9c5b6; --text-muted:#928e80;
+  --series-1:#5aa2ff; --series-2:#ff8a3d; --accent-wash:#3a3410; --banner:#3a3410; --banner-ink:#ffe98a;
+  --up:#ff5a52; --down:#62a8f5; --up-wash:#3d1a18; --down-wash:#16284a; --shadow:5px 5px 0 var(--hard);
 }
+/* 数字用の書体（端末に入っている幅の狭い太字を使う。外部からは読み込まない） */
+@font-face{font-family:"Num";font-weight:700;src:local("Impact"),local("DIN Condensed Bold"),local("DINCondensed-Bold"),
+  local("Roboto Condensed Bold"),local("RobotoCondensed-Bold")}
 *{box-sizing:border-box}
 body{margin:0;background:var(--surface-0);color:var(--text-primary);
+  background-image:radial-gradient(var(--dot) 1px,transparent 1.2px);background-size:7px 7px;
   font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;line-height:1.6;font-size:15px}
 a{color:var(--series-1)}
 .wrap{max-width:1080px;margin:0 auto;padding:24px 16px 64px}
-header{position:relative;overflow:hidden;border-radius:20px;padding:32px 28px 24px;color:#fff;
-  background:linear-gradient(135deg,#0a1230 0%,#152c68 52%,#2a63cc 100%);box-shadow:var(--shadow)}
-header::after{content:"";position:absolute;right:-80px;top:-120px;width:360px;height:360px;border-radius:50%;
-  background:radial-gradient(closest-side,rgba(255,196,92,.35),rgba(255,196,92,0));pointer-events:none}
-header>*{position:relative;z-index:1}
-header h1{font-size:30px;line-height:1.3;margin:0 0 6px;letter-spacing:.02em;font-weight:800}
-header .beta{font-size:12px;font-weight:600;vertical-align:middle;margin-left:6px;padding:2px 8px;border-radius:999px;
-  background:rgba(255,255,255,.16);color:#fff}
-header p{margin:0;color:rgba(255,255,255,.84);max-width:46em}
-nav{margin-top:16px;font-size:13px}
-nav a{display:inline-block;margin:0 8px 8px 0;padding:5px 14px;border-radius:999px;color:#fff;text-decoration:none;
-  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22)}
-nav a:hover,nav a:focus-visible{background:rgba(255,255,255,.26)}
+header{position:relative;padding:38px 28px 22px;color:#fff;background:#111;border:2px solid var(--ink);
+  box-shadow:8px 8px 0 var(--up);margin-bottom:8px}
+header::before{content:"";position:absolute;left:0;right:0;top:0;height:12px;
+  background:repeating-linear-gradient(-45deg,#ffe100 0 14px,#111 14px 28px)}
+header h1{font-size:34px;line-height:1.2;margin:0 0 8px;letter-spacing:.02em;font-weight:900}
+header .beta{display:inline-block;font-size:12px;font-weight:800;vertical-align:middle;margin-left:10px;padding:1px 7px;
+  background:#ffe100;color:#111;letter-spacing:0;text-shadow:none}
+header p{margin:0;color:rgba(255,255,255,.86);max-width:46em}
+nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;font-size:13px}
+nav a{padding:5px 14px;color:#fff;text-decoration:none;font-weight:700;border:2px solid #fff}
+nav a:hover,nav a:focus-visible{background:#ffe100;border-color:#ffe100;color:#111}
 .up{color:var(--up)} .down{color:var(--down)}
-.banner{background:var(--banner);color:var(--banner-ink);border-radius:8px;padding:10px 14px;margin:16px 0;font-size:14px}
-.card{background:var(--surface-1);border:1px solid var(--border);border-radius:16px;padding:22px;margin-top:16px;box-shadow:var(--shadow)}
-.card h2{font-size:17px;margin:0 0 4px} .card .sub{color:var(--text-secondary);font-size:13px;margin:0 0 12px}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
-.tile{background:var(--surface-1);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
-.tile .label{font-size:13px;color:var(--text-secondary)} .tile .value{font-size:32px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.banner{background:var(--banner);color:var(--banner-ink);border:2px solid var(--ink);padding:10px 14px;margin:20px 0;font-size:14px}
+.card{background:var(--surface-1);border:2px solid var(--ink);padding:22px;margin-top:22px;box-shadow:var(--shadow)}
+.card h2{display:inline-block;font-size:16px;font-weight:800;margin:0 0 8px;padding:3px 12px;background:var(--ink);color:var(--on-ink)}
+.card .sub{color:var(--text-secondary);font-size:13px;margin:0 0 12px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-top:22px}
+.tile{background:var(--surface-1);border:2px solid var(--ink);padding:14px 16px;box-shadow:var(--shadow)}
+.tile .label{font-size:12px;font-weight:700;color:var(--text-secondary)}
+.tile .value{font:700 42px/1.15 "Num","Arial Narrow",sans-serif-condensed,sans-serif;font-variant-numeric:tabular-nums}
 .tile .note{font-size:12px;color:var(--text-muted)}
-.prov{margin:8px 0 0;font-size:13px;color:var(--text-secondary)}
+.tile:first-child{background:var(--accent);color:var(--accent-ink)}
+.tile:first-child .label,.tile:first-child .note{color:#3d3400}
+.prov{margin:14px 0 0;font-size:13px;color:var(--text-secondary)}
 .chart{position:relative;outline:none} .chart svg{display:block;width:100%;height:auto;overflow:visible}
-.chart:focus-visible{box-shadow:0 0 0 2px var(--series-1);border-radius:6px}
+.chart:focus-visible{box-shadow:0 0 0 2px var(--series-1)}
 .axis text{fill:var(--text-muted);font-size:11px} .gridline{stroke:var(--grid);stroke-width:1}
 .baseline{stroke:var(--text-muted);stroke-width:1;stroke-dasharray:3 3;opacity:.6}
-.line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.line{fill:none;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
 .dlabel{font-size:12px;fill:var(--text-secondary)}
 .crosshair{stroke:var(--text-muted);stroke-width:1;visibility:hidden}
-.tip{position:absolute;pointer-events:none;background:var(--surface-1);border:1px solid var(--border);border-radius:8px;
-  padding:8px 10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.12);visibility:hidden;min-width:150px;z-index:2}
+.tip{position:absolute;pointer-events:none;background:var(--surface-1);border:2px solid var(--ink);
+  padding:8px 10px;font-size:12px;box-shadow:3px 3px 0 var(--hard);visibility:hidden;min-width:150px;z-index:2}
 .tip .h{color:var(--text-secondary);margin-bottom:4px} .tip .row{display:flex;align-items:center;gap:6px;white-space:nowrap}
-.tip .key{width:14px;height:2px;border-radius:1px;display:inline-block} .tip strong{font-variant-numeric:tabular-nums}
+.tip .key{width:14px;height:3px;display:inline-block} .tip strong{font-variant-numeric:tabular-nums}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-secondary);margin-bottom:6px}
-.legend span{display:inline-flex;align-items:center;gap:6px} .legend i{width:16px;height:2px;border-radius:1px;display:inline-block}
+.legend span{display:inline-flex;align-items:center;gap:6px} .legend i{width:18px;height:3px;display:inline-block}
 .multiples{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
-.multiples h3{font-size:14px;margin:0;font-weight:600} .multiples .m{color:var(--text-secondary);font-size:12px}
+.multiples h3{font-size:14px;margin:0;font-weight:700} .multiples .m{color:var(--text-secondary);font-size:12px}
 .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
-.filters button{font:inherit;font-size:13px;border:1px solid var(--border);background:var(--surface-1);color:var(--text-primary);
-  padding:4px 12px;border-radius:999px;cursor:pointer}
-.filters button[aria-pressed="true"]{background:var(--accent-wash);border-color:var(--series-1);font-weight:600}
-.filters input{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--border);border-radius:8px;
+.filters button{font:inherit;font-size:13px;font-weight:700;border:2px solid var(--ink);background:var(--surface-1);color:var(--text-primary);
+  padding:3px 12px;border-radius:0;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--on-ink)}
+.filters input{font:inherit;font-size:13px;padding:4px 10px;border:2px solid var(--ink);border-radius:0;
   background:var(--surface-1);color:var(--text-primary);min-width:200px}
 .tablewrap{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-size:13px}
 th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
-th{color:var(--text-secondary);font-weight:600;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--surface-1)}
+th{color:var(--text-primary);font-weight:700;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--surface-1);
+  border-bottom:2px solid var(--ink)}
 th[aria-sort="ascending"]::after{content:" ▲"} th[aria-sort="descending"]::after{content:" ▼"}
+tbody tr:hover{background:var(--accent-wash)}
 td.num{text-align:right;font-variant-numeric:tabular-nums} td.muted{color:var(--text-muted)}
+td.up,td.down{font-weight:700}
 details summary{cursor:pointer;color:var(--text-secondary);font-size:13px;margin-top:12px}
-footer{margin-top:32px;color:var(--text-muted);font-size:12px} footer a{color:var(--text-secondary)}
-.only-narrow{display:none} @media (max-width:640px){.only-wide{display:none}.only-narrow{display:block}.tile .value{font-size:26px}.card{padding:16px}header{padding:24px 18px 16px;border-radius:16px}header h1{font-size:24px}}
-.prose h2{font-size:18px;margin-top:28px} .prose li{margin:4px 0} .prose code{background:var(--accent-wash);padding:1px 5px;border-radius:4px}
+footer{margin-top:44px;padding-top:14px;border-top:4px solid var(--ink);color:var(--text-muted);font-size:12px} footer a{color:var(--text-secondary)}
+.only-narrow{display:none} @media (max-width:640px){.only-wide{display:none}.only-narrow{display:block}.tile .value{font-size:34px}.card{padding:16px}header{padding:32px 16px 16px;box-shadow:5px 5px 0 var(--up)}header h1{font-size:25px}.tiles{gap:12px}}
+.prose h2{font-size:17px;margin-top:28px} .prose li{margin:4px 0} .prose code{background:var(--accent-wash);padding:1px 5px}
 </style></head>
 <body><div class="wrap">
 <header><h1>トレカ未開封BOX相場指数<span class="beta">β</span></h1>
@@ -116,7 +128,7 @@ footer{margin-top:32px;color:var(--text-muted);font-size:12px} footer a{color:va
 
 <p>【広告】「楽天で探す」のリンクは楽天アフィリエイトを利用しています。リンク先で購入があると、本サイトに紹介料が支払われることがあります。</p>
 <p><a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">Supported by Rakuten Developers</a> ／ <a href="https://developer.yahoo.co.jp/sitemap/" target="_blank" rel="noopener">Webサービス by Yahoo! JAPAN</a></p>
-<p>更新: 2026-11-18</p>
+<p>更新: 2026-11-19</p>
 </footer></div><script>
 (function(){
   function fmt(v,unit,dec){ if(v===null||v===undefined) return '—';
